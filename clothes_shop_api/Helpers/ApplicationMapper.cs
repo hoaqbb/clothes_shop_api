@@ -6,6 +6,7 @@ using clothes_shop_api.DTOs.ProductDtos;
 using clothes_shop_api.DTOs.ProductImageDtos;
 using clothes_shop_api.DTOs.QuantityDtos;
 using clothes_shop_api.DTOs.SizeDtos;
+using clothes_shop_api.DTOs.UserDtos;
 
 namespace clothes_shop_api.Helpers
 {
@@ -25,6 +26,8 @@ namespace clothes_shop_api.Helpers
             CreateMap<Product, ProductDetailDto>()
                 .ForMember(dest => dest.ProductVariants, opt => opt.MapFrom(src =>
                     src.Quantities));
+
+            CreateMap<RegisterDto, User>();
 
             CreateMap<Color, ColorDto>().ReverseMap();
 

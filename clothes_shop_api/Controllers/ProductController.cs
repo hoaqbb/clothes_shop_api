@@ -9,23 +9,23 @@ namespace clothes_shop_api.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly IProductRepository _productRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public ProductController(IProductRepository productRepository) 
+        public ProductController(IUnitOfWork unitOfWork) 
         {
-            _productRepository = productRepository;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductListDto>>> GetAllProducts()
         {
-            return Ok(await _productRepository.GetAllProductsAsync());
+            return Ok(await _unitOfWork.ProductRepository.GetAllProductsAsync());
         }
 
         [HttpGet("{slug}")]
         public async Task<ActionResult<ProductDetailDto>> GetProductBySlug(string slug)
         {
-            var product = await _productRepository.GetProductBySlugAsync(slug);
+            var product = await _unitOfWork.ProductRepository.GetProductBySlugAsync(slug);
 
             if (product != null)
                 return Ok(product);
@@ -35,7 +35,7 @@ namespace clothes_shop_api.Controllers
         [HttpGet("categories/{category}")]
         public async Task<ActionResult<IEnumerable<ProductListDto>>> GetProductsByCategory(string category)
         {
-            var products = await _productRepository.GetProductsByCategoryAsync(category);
+            var products = await _unitOfWork.ProductRepository.GetProductsByCategoryAsync(category);
 
             if (products != null)
                 return Ok(products);

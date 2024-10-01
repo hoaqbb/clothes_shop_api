@@ -2,6 +2,7 @@
 using clothes_shop_api.Helpers;
 using clothes_shop_api.Interfaces;
 using clothes_shop_api.Repositories;
+using clothes_shop_api.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace clothes_shop_api.Extensions
@@ -14,8 +15,8 @@ namespace clothes_shop_api.Extensions
                 opt.UseSqlServer(config.GetConnectionString("SQLServerCon"))
             );
 
-            services.AddScoped<IProductRepository, ProductRepository>();
-            services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.AddAutoMapper(typeof(ApplicationMapper).Assembly);
 

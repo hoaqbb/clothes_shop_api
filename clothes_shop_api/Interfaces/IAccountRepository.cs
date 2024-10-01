@@ -4,8 +4,8 @@ namespace clothes_shop_api.Interfaces
 {
     public interface IAccountRepository
     {
-        Task<AppUser> AuthenticateAsync(LoginDto loginDto);
-        Task<AppUser> RegisterAsync(RegisterDto registerDto);
+        Task<UserDto> AuthenticateAsync(LoginDto loginDto);
+        Task<UserDto> RegisterAsync(RegisterDto registerDto);
         Task<bool> IsUserExistedAsync(string email);
     }
 }
