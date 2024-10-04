@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 /clothes_shop_api/appsettings.json
 /clothes_shop_api/appsettings.Development.json
+/clothes_shop_api/DTOs/QuantitiesTestDto.cs
+/clothes_shop_api/DTOs/TestDto.cs

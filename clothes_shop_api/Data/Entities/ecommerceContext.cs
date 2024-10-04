@@ -16,6 +16,7 @@ namespace clothes_shop_api.Data.Entities
         {
         }
 
+        public virtual DbSet<Cart> Carts { get; set; } = null!;
         public virtual DbSet<Category> Categories { get; set; } = null!;
         public virtual DbSet<Color> Colors { get; set; } = null!;
         public virtual DbSet<Order> Orders { get; set; } = null!;
@@ -23,10 +24,8 @@ namespace clothes_shop_api.Data.Entities
         public virtual DbSet<Payment> Payments { get; set; } = null!;
         public virtual DbSet<Product> Products { get; set; } = null!;
         public virtual DbSet<ProductColor> ProductColors { get; set; } = null!;
-        public virtual DbSet<ProductDetail> ProductDetails { get; set; } = null!;
         public virtual DbSet<ProductImage> ProductImages { get; set; } = null!;
         public virtual DbSet<Quantity> Quantities { get; set; } = null!;
-        public virtual DbSet<Role> Roles { get; set; } = null!;
         public virtual DbSet<Size> Sizes { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
 
@@ -34,13 +33,38 @@ namespace clothes_shop_api.Data.Entities
         {
             if (!optionsBuilder.IsConfigured)
             {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Data Source=DINHHOANG\\DINHHOANG;Initial Catalog=ecommerce;Persist Security Info=True;User ID=sa;Password=1");
+                optionsBuilder.UseSqlServer("Name=ConnectionStrings:SQLServerCon");
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Cart>(entity =>
+            {
+                entity.ToTable("cart");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Quantity)
+                    .HasColumnName("quantity")
+                    .HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.QuantityId).HasColumnName("quantity_id");
+
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+
+                entity.HasOne(d => d.QuantityNavigation)
+                    .WithMany(p => p.Carts)
+                    .HasForeignKey(d => d.QuantityId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_CART_QUANTITY");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Carts)
+                    .HasForeignKey(d => d.UserId)
+                    .HasConstraintName("FK_CART_USER");
+            });
+
             modelBuilder.Entity<Category>(entity =>
             {
                 entity.ToTable("category");
@@ -83,6 +107,8 @@ namespace clothes_shop_api.Data.Entities
                     .HasMaxLength(300)
                     .HasColumnName("note");
 
+                entity.Property(e => e.PaymentId).HasColumnName("payment_id");
+
                 entity.Property(e => e.Status).HasColumnName("status");
 
                 entity.Property(e => e.Total)
@@ -94,6 +120,18 @@ namespace clothes_shop_api.Data.Entities
                     .HasColumnName("update_at");
 
                 entity.Property(e => e.UserId).HasColumnName("user_id");
+
+                entity.HasOne(d => d.Payment)
+                    .WithMany(p => p.Orders)
+                    .HasForeignKey(d => d.PaymentId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ORDER_PAYMENT");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Orders)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ORDER_USER");
             });
 
             modelBuilder.Entity<OrderItem>(entity =>
@@ -104,9 +142,21 @@ namespace clothes_shop_api.Data.Entities
 
                 entity.Property(e => e.OrderId).HasColumnName("order_id");
 
-                entity.Property(e => e.ProductDetailId).HasColumnName("product_detail_id");
-
                 entity.Property(e => e.Quantity).HasColumnName("quantity");
+
+                entity.Property(e => e.QuantityId).HasColumnName("quantity_id");
+
+                entity.HasOne(d => d.Order)
+                    .WithMany(p => p.OrderItems)
+                    .HasForeignKey(d => d.OrderId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ORDER_ITEM_ORDER");
+
+                entity.HasOne(d => d.QuantityNavigation)
+                    .WithMany(p => p.OrderItems)
+                    .HasForeignKey(d => d.QuantityId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ORDER_ITEM_QUANTITY");
             });
 
             modelBuilder.Entity<Payment>(entity =>
@@ -141,6 +191,12 @@ namespace clothes_shop_api.Data.Entities
                     .HasColumnName("update_at");
 
                 entity.Property(e => e.UserId).HasColumnName("user_id");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Payments)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_PAYMENT_USER");
             });
 
             modelBuilder.Entity<Product>(entity =>
@@ -205,21 +261,6 @@ namespace clothes_shop_api.Data.Entities
                     .HasConstraintName("FK_product_color_product");
             });
 
-            modelBuilder.Entity<ProductDetail>(entity =>
-            {
-                entity.ToTable("product_detail");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.ColorId).HasColumnName("color_id");
-
-                entity.Property(e => e.ProductId).HasColumnName("product_id");
-
-                entity.Property(e => e.QuantityId).HasColumnName("quantity_id");
-
-                entity.Property(e => e.SizeId).HasColumnName("size_id");
-            });
-
             modelBuilder.Entity<ProductImage>(entity =>
             {
                 entity.ToTable("product_image");
@@ -275,17 +316,6 @@ namespace clothes_shop_api.Data.Entities
                     .HasConstraintName("FK_quantity_size");
             });
 
-            modelBuilder.Entity<Role>(entity =>
-            {
-                entity.ToTable("role");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.Name)
-                    .HasMaxLength(15)
-                    .HasColumnName("name");
-            });
-
             modelBuilder.Entity<Size>(entity =>
             {
                 entity.ToTable("size");
@@ -331,7 +361,11 @@ namespace clothes_shop_api.Data.Entities
 
                 entity.Property(e => e.PasswordSalt).HasColumnName("password_salt");
 
-                entity.Property(e => e.RoleId).HasColumnName("role_id");
+                entity.Property(e => e.Role)
+                    .HasMaxLength(10)
+                    .IsUnicode(false)
+                    .HasColumnName("role")
+                    .HasDefaultValueSql("('Customer')");
 
                 entity.Property(e => e.UpdateAt)
                     .HasColumnType("datetime")

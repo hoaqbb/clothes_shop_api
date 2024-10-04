@@ -24,8 +24,18 @@ namespace clothes_shop_api.Repositories
         {
             var user = await _context.Users
                 .SingleOrDefaultAsync(x => x.Email == loginDto.Email);
+
             if (user is null) return null;
 
+            using var hmac = new HMACSHA512(user.PasswordSalt);
+
+            var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
+
+            for (int i = 0; i < computedHash.Length; i++)
+            {
+                if (computedHash[i] != user.PasswordHash[i]) return null;
+            }
+            
             return new UserDto
             {
                 Email = user.Email,

@@ -22,7 +22,7 @@ namespace clothes_shop_api.Data.Entities
         public DateTime? UpdateAt { get; set; }
         public int? CategoryId { get; set; }
 
-        public virtual Category Category { get; set; }
+        public virtual Category? Category { get; set; }
         public virtual ICollection<ProductColor> ProductColors { get; set; }
         public virtual ICollection<ProductImage> ProductImages { get; set; }
         public virtual ICollection<Quantity> Quantities { get; set; }

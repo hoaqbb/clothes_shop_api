@@ -23,7 +23,8 @@ namespace clothes_shop_api.Services
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email)
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role)
             };
 
             var signingCredentials = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);

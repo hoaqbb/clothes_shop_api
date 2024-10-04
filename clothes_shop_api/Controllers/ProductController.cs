@@ -2,6 +2,7 @@
 using clothes_shop_api.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace clothes_shop_api.Controllers
 {
@@ -29,7 +30,7 @@ namespace clothes_shop_api.Controllers
 
             if (product != null)
                 return Ok(product);
-            return BadRequest("Product not found!");
+            return NotFound("Product not found!");
         }
 
         [HttpGet("categories/{category}")]
@@ -37,9 +38,10 @@ namespace clothes_shop_api.Controllers
         {
             var products = await _unitOfWork.ProductRepository.GetProductsByCategoryAsync(category);
 
-            if (products != null)
-                return Ok(products);
-            return NotFound("Product not found!");
+            if (products.IsNullOrEmpty())
+                return NotFound("Product not found!");
+            return Ok(products);
+            
         }
 
     }

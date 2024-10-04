@@ -21,6 +21,8 @@ namespace clothes_shop_api.Repositories
 
         public IProductRepository ProductRepository => new ProductRepository(_context, _mapper);
 
+        public ICartRepository CartRepository => new CartRepository(_context, _mapper);
+
         public async Task<bool> SaveAllAsync()
         {
             return await _context.SaveChangesAsync() > 0;
