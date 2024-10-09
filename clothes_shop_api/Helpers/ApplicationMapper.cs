@@ -3,6 +3,7 @@ using clothes_shop_api.Data.Entities;
 using clothes_shop_api.DTOs;
 using clothes_shop_api.DTOs.CartDtos;
 using clothes_shop_api.DTOs.ColorDtos;
+using clothes_shop_api.DTOs.OrderDtos;
 using clothes_shop_api.DTOs.ProductDtos;
 using clothes_shop_api.DTOs.ProductImageDtos;
 using clothes_shop_api.DTOs.QuantityDtos;
@@ -57,6 +58,11 @@ namespace clothes_shop_api.Helpers
                     src.QuantityNavigation.Product.Slug))
                 .ForMember(dest => dest.ProductVariant, opt => opt.MapFrom(src =>
                     src.QuantityNavigation));
+
+            CreateMap<Order, OrderDto>()
+                .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src =>
+                    src.Payment.Method))
+                ;
         }
     }
 }

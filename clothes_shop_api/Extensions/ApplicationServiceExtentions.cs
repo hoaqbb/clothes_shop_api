@@ -16,9 +16,14 @@ namespace clothes_shop_api.Extensions
             );
 
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IFileService, FileService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IVnPayService, VnPayService>();
 
             services.AddAutoMapper(typeof(ApplicationMapper).Assembly);
+
+            services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
+            services.Configure<VnPaySettings>(config.GetSection("VNPaySettings"));
 
             return services;
         }

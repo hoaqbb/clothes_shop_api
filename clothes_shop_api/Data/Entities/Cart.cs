@@ -5,12 +5,18 @@ namespace clothes_shop_api.Data.Entities
 {
     public partial class Cart
     {
+        public Cart()
+        {
+            OrderItems = new HashSet<OrderItem>();
+        }
+
         public int Id { get; set; }
-        public int? Quantity { get; set; }
+        public int Quantity { get; set; }
         public int QuantityId { get; set; }
         public int UserId { get; set; }
 
         public virtual Quantity QuantityNavigation { get; set; } = null!;
         public virtual User User { get; set; } = null!;
+        public virtual ICollection<OrderItem> OrderItems { get; set; }
     }
 }

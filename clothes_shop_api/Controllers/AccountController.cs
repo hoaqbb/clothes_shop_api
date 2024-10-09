@@ -15,12 +15,10 @@ namespace clothes_shop_api.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
 
-        public AccountController(IUnitOfWork unitOfWork, IMapper mapper)
+        public AccountController(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
         }
 
         [HttpPost("login")]

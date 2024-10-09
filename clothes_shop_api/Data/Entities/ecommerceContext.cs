@@ -45,9 +45,7 @@ namespace clothes_shop_api.Data.Entities
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.Quantity)
-                    .HasColumnName("quantity")
-                    .HasDefaultValueSql("((0))");
+                entity.Property(e => e.Quantity).HasColumnName("quantity");
 
                 entity.Property(e => e.QuantityId).HasColumnName("quantity_id");
 
@@ -96,12 +94,33 @@ namespace clothes_shop_api.Data.Entities
             {
                 entity.ToTable("order");
 
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Address)
+                    .HasMaxLength(3000)
+                    .HasColumnName("address")
+                    .IsFixedLength();
+
+                entity.Property(e => e.Amount)
+                    .HasColumnType("decimal(18, 0)")
+                    .HasColumnName("amount");
 
                 entity.Property(e => e.CreateAt)
                     .HasColumnType("datetime")
                     .HasColumnName("create_at")
                     .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Email)
+                    .HasMaxLength(50)
+                    .HasColumnName("email")
+                    .IsFixedLength();
+
+                entity.Property(e => e.Fullname)
+                    .HasMaxLength(100)
+                    .HasColumnName("fullname")
+                    .IsFixedLength();
 
                 entity.Property(e => e.Note)
                     .HasMaxLength(300)
@@ -109,11 +128,14 @@ namespace clothes_shop_api.Data.Entities
 
                 entity.Property(e => e.PaymentId).HasColumnName("payment_id");
 
-                entity.Property(e => e.Status).HasColumnName("status");
+                entity.Property(e => e.PhoneNumber)
+                    .HasMaxLength(10)
+                    .IsUnicode(false)
+                    .HasColumnName("phone_number");
 
-                entity.Property(e => e.Total)
-                    .HasColumnType("decimal(18, 0)")
-                    .HasColumnName("total");
+                entity.Property(e => e.Shipping).HasColumnName("shipping");
+
+                entity.Property(e => e.Status).HasColumnName("status");
 
                 entity.Property(e => e.UpdateAt)
                     .HasColumnType("datetime")
@@ -124,13 +146,11 @@ namespace clothes_shop_api.Data.Entities
                 entity.HasOne(d => d.Payment)
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.PaymentId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ORDER_PAYMENT");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ORDER_USER");
             });
 
@@ -140,11 +160,18 @@ namespace clothes_shop_api.Data.Entities
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
+                entity.Property(e => e.CartId).HasColumnName("cart_id");
+
                 entity.Property(e => e.OrderId).HasColumnName("order_id");
 
                 entity.Property(e => e.Quantity).HasColumnName("quantity");
 
                 entity.Property(e => e.QuantityId).HasColumnName("quantity_id");
+
+                entity.HasOne(d => d.Cart)
+                    .WithMany(p => p.OrderItems)
+                    .HasForeignKey(d => d.CartId)
+                    .HasConstraintName("FK_ORDER_ITEM_CART");
 
                 entity.HasOne(d => d.Order)
                     .WithMany(p => p.OrderItems)
@@ -155,7 +182,6 @@ namespace clothes_shop_api.Data.Entities
                 entity.HasOne(d => d.QuantityNavigation)
                     .WithMany(p => p.OrderItems)
                     .HasForeignKey(d => d.QuantityId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ORDER_ITEM_QUANTITY");
             });
 
@@ -343,7 +369,7 @@ namespace clothes_shop_api.Data.Entities
                     .HasColumnName("date_of_birth");
 
                 entity.Property(e => e.Email)
-                    .HasMaxLength(20)
+                    .HasMaxLength(100)
                     .IsUnicode(false)
                     .HasColumnName("email");
 
@@ -352,6 +378,8 @@ namespace clothes_shop_api.Data.Entities
                     .HasColumnName("firstname");
 
                 entity.Property(e => e.Gender).HasColumnName("gender");
+
+                entity.Property(e => e.IsAuthenticated).HasColumnName("is_authenticated");
 
                 entity.Property(e => e.Lastname)
                     .HasMaxLength(20)

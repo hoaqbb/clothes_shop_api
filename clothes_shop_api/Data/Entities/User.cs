@@ -23,6 +23,7 @@ namespace clothes_shop_api.Data.Entities
         public DateTime? CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
         public string Role { get; set; } = null!;
+        public bool IsAuthenticated { get; set; }
 
         public virtual ICollection<Cart> Carts { get; set; }
         public virtual ICollection<Order> Orders { get; set; }

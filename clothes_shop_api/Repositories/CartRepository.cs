@@ -53,7 +53,15 @@ namespace clothes_shop_api.Repositories
 
             if (cartItem != null && quantityItem != null)
             {
-                cartItem.Quantity += createCartItemDto.Quantity;
+                if(createCartItemDto.Quantity > 1)
+                {
+                    cartItem.Quantity = createCartItemDto.Quantity;
+                }
+                else
+                {
+                    cartItem.Quantity += createCartItemDto.Quantity;
+                }
+                
                 if (cartItem.Quantity > quantityItem.Amount)
                 {
                     cartItem.Quantity = quantityItem.Amount;
