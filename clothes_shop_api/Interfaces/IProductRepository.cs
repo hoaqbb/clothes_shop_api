@@ -1,11 +1,12 @@
 ﻿using clothes_shop_api.DTOs.ProductDtos;
+using clothes_shop_api.Helpers;
 
 namespace clothes_shop_api.Interfaces
 {
     public interface IProductRepository
     {
-        Task<IEnumerable<ProductListDto>> GetAllProductsAsync();
-        Task<IEnumerable<ProductListDto>> GetProductsByCategoryAsync(string category);
+        Task<PagedList<ProductListDto>> GetAllProductsAsync(UserParams userParams);
+        Task<PagedList<ProductListDto>> GetProductsByCategoryAsync(UserParams userParams, string category);
         Task<ProductDetailDto> GetProductBySlugAsync(string slug);
     }
 }

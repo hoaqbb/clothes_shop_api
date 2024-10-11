@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using clothes_shop_api.Data.Entities;
 using clothes_shop_api.DTOs.ProductDtos;
+using clothes_shop_api.Helpers;
 using clothes_shop_api.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
@@ -19,13 +20,22 @@ namespace clothes_shop_api.Repositories
             _context = context;
             _mapper = mapper;
         }
-        public async Task<IEnumerable<ProductListDto>> GetAllProductsAsync()
+        public async Task<PagedList<ProductListDto>> GetAllProductsAsync(UserParams userParams)
         {
-            var products = await _context.Products
-                .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider)
-                .ToListAsync();
+            var query = _context.Products.AsQueryable();
 
-            return products;
+            query = userParams.SortBy switch
+            {
+                "price_ascending" => query.OrderBy(p => p.Price),
+                "price_descending" => query.OrderByDescending(p => p.Price),
+                "created_ascending" => query.OrderBy(p => p.CreateAt),
+                _ => query.OrderByDescending(p => p.CreateAt),
+            };
+
+            return await PagedList<ProductListDto>.CreateAsync(
+                query.ProjectTo<ProductListDto>(_mapper.ConfigurationProvider), 
+                userParams.PageNumber, 
+                userParams.PageSize);
         }
 
         public async Task<ProductDetailDto> GetProductBySlugAsync(string slug)
@@ -38,26 +48,45 @@ namespace clothes_shop_api.Repositories
             return product;
         }
 
-        public async Task<IEnumerable<ProductListDto>> GetProductsByCategoryAsync(string category)
+        public async Task<PagedList<ProductListDto>> GetProductsByCategoryAsync(UserParams userParams, string category)
         {
-            if(category == "all")
+            var query = _context.Products
+                .Include(p => p.Category)
+                .AsQueryable();
+
+            switch (category) 
             {
-                return await _context.Products
-                   .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider)
-                   .ToListAsync();
+                case "sale":
+                    {
+                        query = query.Where(x => x.Discount > 0);
+                        break;
+                    }
+                case "all":
+                    {
+                        break;
+                    }
+                default:
+                    {
+                        query = query.Where(x => x.Category.Name == category);
+                        break;
+                    }
             }
-            if(category == "sale")
+            if(query.Any())
             {
-                return await _context.Products
-                   .Where(x => x.Discount > 0)
-                   .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider)
-                   .ToListAsync();
+                query = userParams.SortBy switch
+                {
+                    "created_ascending" => query.OrderByDescending(x => x.CreateAt),
+                    "price_ascending" => query.OrderBy(x => x.Price),
+                    "price_descending" => query.OrderByDescending(x => x.Price),
+                    _ => query.OrderBy(x => x.CreateAt)
+                };
             }
 
-            return await _context.Products
-                .Where(x => x.Category.Name == category)
-                .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider)
-                .ToListAsync();
+            return await PagedList<ProductListDto>.CreateAsync(
+                query.ProjectTo<ProductListDto>(_mapper.ConfigurationProvider).AsNoTracking(),
+                userParams.PageNumber,
+                userParams.PageSize
+                );
         }
     }
 }

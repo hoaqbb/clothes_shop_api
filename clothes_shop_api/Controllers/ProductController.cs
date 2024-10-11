@@ -1,4 +1,6 @@
 ﻿using clothes_shop_api.DTOs.ProductDtos;
+using clothes_shop_api.Extensions;
+using clothes_shop_api.Helpers;
 using clothes_shop_api.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,9 +20,9 @@ namespace clothes_shop_api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductListDto>>> GetAllProducts()
+        public async Task<ActionResult<IEnumerable<ProductListDto>>> GetAllProducts([FromQuery]UserParams userParams)
         {
-            return Ok(await _unitOfWork.ProductRepository.GetAllProductsAsync());
+            return Ok(await _unitOfWork.ProductRepository.GetAllProductsAsync(userParams));
         }
 
         [HttpGet("{slug}")]
@@ -34,14 +36,22 @@ namespace clothes_shop_api.Controllers
         }
 
         [HttpGet("categories/{category}")]
-        public async Task<ActionResult<IEnumerable<ProductListDto>>> GetProductsByCategory(string category)
+        public async Task<ActionResult<IEnumerable<ProductListDto>>> GetProductsByCategory([FromQuery]UserParams userParams ,string category)
         {
-            var products = await _unitOfWork.ProductRepository.GetProductsByCategoryAsync(category);
+            var products = await _unitOfWork.ProductRepository.GetProductsByCategoryAsync(userParams, category);
 
-            if (products.IsNullOrEmpty())
-                return NotFound("Product not found!");
+            Response.AddPaginationHeader(products.CurrentPage, products.PageSize, 
+                products.TotalCount, products.TotalPages);
+            //if (products.IsNullOrEmpty())
+            //    return NotFound("Product not found!");
             return Ok(products);
             
+        }
+
+        [HttpPost("create-product")]
+        public async Task<ActionResult> CreateProduct(CreateProductDto createProduct)
+        {
+            return Ok();
         }
 
     }

@@ -80,8 +80,7 @@ namespace clothes_shop_api.Services
                 PaymentMethod = "VnPay",
                 OrderDescription = vnp_OrderInfo,
                 OrderId = orderId,
-                TransactionId = vnpayTranId.ToString(),
-                //Token = vnp_SecureHash,
+                TransactionId = vnp_TxnRef,
                 VnPayResponseCode = vnp_ResponseCode,
                 TransactionStatus = vnp_TransactionStatus
             };

@@ -14,16 +14,19 @@ namespace clothes_shop_api.Extensions
             services.AddDbContext<ecommerceContext>(opt => 
                 opt.UseSqlServer(config.GetConnectionString("SQLServerCon"))
             );
-
+            services.Configure<PayPalSettings>(config.GetSection("PayPalSettings"));
+            services.AddHttpClient();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IFileService, FileService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IVnPayService, VnPayService>();
+            services.AddScoped<PayPalClient>();
 
             services.AddAutoMapper(typeof(ApplicationMapper).Assembly);
 
             services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
             services.Configure<VnPaySettings>(config.GetSection("VNPaySettings"));
+            
 
             return services;
         }

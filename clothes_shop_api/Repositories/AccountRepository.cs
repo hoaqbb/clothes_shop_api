@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using clothes_shop_api.Data.Entities;
 using clothes_shop_api.DTOs.UserDtos;
 using clothes_shop_api.Interfaces;
@@ -41,6 +42,15 @@ namespace clothes_shop_api.Repositories
                 Email = user.Email,
                 Token = _tokenService.CreateToken(user)
             };
+        }
+
+        public async Task<UserDetailDto> GetUserDetailAsync(int id)
+        {
+            var user = await _context.Users
+                .Where(x => x.Id == id)
+                .ProjectTo<UserDetailDto>(_mapper.ConfigurationProvider)
+                .SingleOrDefaultAsync();
+            return user;
         }
 
         public Task<bool> IsUserExistedAsync(string email)

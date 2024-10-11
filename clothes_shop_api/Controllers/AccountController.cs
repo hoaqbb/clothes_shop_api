@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using clothes_shop_api.Data.Entities;
 using clothes_shop_api.DTOs.UserDtos;
+using clothes_shop_api.Extensions;
 using clothes_shop_api.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +39,17 @@ namespace clothes_shop_api.Controllers
                 return BadRequest("Email is taken!");
 
             return Ok(await _unitOfWork.AccountRepository.RegisterAsync(registerDto));
+        }
+
+        [Authorize]
+        [HttpGet("get-user-detail")]
+        public async Task<ActionResult<UserDetailDto>> GetUserDetailAsync()
+        {
+            var userId = User.GetUserId();
+            var user = await _unitOfWork.AccountRepository.GetUserDetailAsync(userId);
+            if (user is null) return Unauthorized();
+
+            return Ok(user);
         }
     }
 }

@@ -21,6 +21,7 @@ namespace clothes_shop_api.Data.Entities
         public DateTime? CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
         public int? CategoryId { get; set; }
+        public bool? IsVisible { get; set; }
 
         public virtual Category? Category { get; set; }
         public virtual ICollection<ProductColor> ProductColors { get; set; }

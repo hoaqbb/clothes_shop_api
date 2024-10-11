@@ -7,5 +7,6 @@ namespace clothes_shop_api.Interfaces
         Task<UserDto> AuthenticateAsync(LoginDto loginDto);
         Task<UserDto> RegisterAsync(RegisterDto registerDto);
         Task<bool> IsUserExistedAsync(string email);
+        Task<UserDetailDto> GetUserDetailAsync(int id);
     }
 }

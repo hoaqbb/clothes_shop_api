@@ -19,6 +19,7 @@ namespace clothes_shop_api.Data.Entities
         public decimal Amount { get; set; }
         public DateTime? CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
+        public string? TransactionId { get; set; }
 
         public virtual User User { get; set; } = null!;
         public virtual ICollection<Order> Orders { get; set; }

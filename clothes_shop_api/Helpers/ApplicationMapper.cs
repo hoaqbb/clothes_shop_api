@@ -30,6 +30,7 @@ namespace clothes_shop_api.Helpers
                     src.Quantities));
 
             CreateMap<RegisterDto, User>();
+            CreateMap<User, UserDetailDto>();
 
             CreateMap<Color, ColorDto>().ReverseMap();
 
@@ -59,10 +60,26 @@ namespace clothes_shop_api.Helpers
                 .ForMember(dest => dest.ProductVariant, opt => opt.MapFrom(src =>
                     src.QuantityNavigation));
 
-            CreateMap<Order, OrderDto>()
+            CreateMap<Order, OrderListDto>()
                 .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src =>
-                    src.Payment.Method))
-                ;
+                    src.Payment.Method));
+            CreateMap<Order, OrderDetailDto>()
+                .ForMember(dest => dest.TransactionId, opt => opt.MapFrom(src =>
+                    src.Payment.TransactionId));
+
+            CreateMap<OrderItem, OrderItemDto>()
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src =>
+                    src.QuantityNavigation.Product.Name))
+                .ForMember(dest => dest.Photo, opt => opt.MapFrom(src =>
+                    src.QuantityNavigation.Product.ProductImages.FirstOrDefault(x => x.IsMain).ImageUrl))
+                .ForMember(dest => dest.Color, opt => opt.MapFrom(src =>
+                    src.QuantityNavigation.ProductColor.Color.Name))
+                .ForMember(dest => dest.Size, opt => opt.MapFrom(src =>
+                    src.QuantityNavigation.Size.Name))
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src =>
+                    src.QuantityNavigation.Product.Price))
+                .ForMember(dest => dest.Discount, opt => opt.MapFrom(src =>
+                    src.QuantityNavigation.Product.Discount));
         }
     }
 }

@@ -212,6 +212,11 @@ namespace clothes_shop_api.Data.Entities
 
                 entity.Property(e => e.Status).HasColumnName("status");
 
+                entity.Property(e => e.TransactionId)
+                    .HasMaxLength(100)
+                    .HasColumnName("transaction_id")
+                    .IsFixedLength();
+
                 entity.Property(e => e.UpdateAt)
                     .HasColumnType("datetime")
                     .HasColumnName("update_at");
@@ -243,6 +248,11 @@ namespace clothes_shop_api.Data.Entities
                     .HasColumnName("description");
 
                 entity.Property(e => e.Discount).HasColumnName("discount");
+
+                entity.Property(e => e.IsVisible)
+                    .IsRequired()
+                    .HasColumnName("is_visible")
+                    .HasDefaultValueSql("((1))");
 
                 entity.Property(e => e.Name)
                     .HasMaxLength(100)
