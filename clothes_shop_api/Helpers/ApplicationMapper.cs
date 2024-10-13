@@ -2,6 +2,7 @@
 using clothes_shop_api.Data.Entities;
 using clothes_shop_api.DTOs;
 using clothes_shop_api.DTOs.CartDtos;
+using clothes_shop_api.DTOs.CategoryDtos;
 using clothes_shop_api.DTOs.ColorDtos;
 using clothes_shop_api.DTOs.OrderDtos;
 using clothes_shop_api.DTOs.ProductDtos;
@@ -36,6 +37,8 @@ namespace clothes_shop_api.Helpers
 
             CreateMap<Size, SizeDto>().ReverseMap();
 
+            CreateMap<Category, CategoryDto>().ReverseMap();
+
             CreateMap<ProductImage, ProductImageDto>().ReverseMap();
 
             CreateMap<Quantity, QuantityDto>()
@@ -63,9 +66,12 @@ namespace clothes_shop_api.Helpers
             CreateMap<Order, OrderListDto>()
                 .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src =>
                     src.Payment.Method));
+
             CreateMap<Order, OrderDetailDto>()
                 .ForMember(dest => dest.TransactionId, opt => opt.MapFrom(src =>
-                    src.Payment.TransactionId));
+                    src.Payment.TransactionId))
+                .ForMember(dest => dest.Provider, opt => opt.MapFrom(src =>
+                    src.Payment.Provider));
 
             CreateMap<OrderItem, OrderItemDto>()
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src =>

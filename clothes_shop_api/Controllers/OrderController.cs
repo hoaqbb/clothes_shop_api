@@ -27,15 +27,13 @@ namespace clothes_shop_api.Controllers
         private readonly IMapper _mapper;
         private readonly ecommerceContext _context;
         private readonly IVnPayService _vnPayService;
-        private readonly PayPalClient _payPalClient;
 
-        public OrderController(IUnitOfWork unitOfWork, IMapper mapper, ecommerceContext context, IVnPayService vnPayService, IConfiguration config, PayPalClient payPalClient)
+        public OrderController(IUnitOfWork unitOfWork, IMapper mapper, ecommerceContext context, IVnPayService vnPayService, PayPalClient payPalClient)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _context = context;
             _vnPayService = vnPayService;
-            _payPalClient = payPalClient;
         }
 
         [Authorize]
@@ -101,7 +99,7 @@ namespace clothes_shop_api.Controllers
                         OrderId = order.Id,
                         Amount = orderRequestDto.Amount,
                         Method = "COD",
-                        UserId = userId,
+                        UserId = userId
                     };
                     _context.Add(payment);
                     await _context.SaveChangesAsync();
@@ -112,7 +110,6 @@ namespace clothes_shop_api.Controllers
                     {
                         _context.Add(new OrderItem
                         {
-                            CartId = item.Id,
                             OrderId = order.Id,
                             QuantityId = item.QuantityId,
                             Quantity = item.Quantity
@@ -185,57 +182,8 @@ namespace clothes_shop_api.Controllers
                     return BadRequest($"Transaction failed: {innerExceptionMessage}");
                 }
                 
-            } else if (orderRequestDto.PaymentMethod == 2) //thanh toan bang PayPal
-            {
-                var paypalResponse = await _payPalClient.CreatePayPalOrderAsync(orderRequestDto.Amount/23000);
-                if(paypalResponse is not null)
-                {
-                    try
-                    {
-                        var orderId = new Random().Next(1000, 10000);
-                        await _context.Database.BeginTransactionAsync();
-                        var payment = new Payment
-                        {
-                            Amount = orderRequestDto.Amount,
-                            Method = "Internet Banking",
-                            Provider = "PayPal",
-                            Status = false,
-                            TransactionId = paypalResponse.id,
-                            OrderId = orderId,
-                            UserId = userId
-                        };
-                        _context.Add(payment);
-                        await _context.SaveChangesAsync();
-
-                        var order = new Order
-                        {
-                            Id = orderId,
-                            Amount = orderRequestDto.Amount,
-                            Address = orderRequestDto.Address,
-                            Email = orderRequestDto.Email,
-                            Fullname = orderRequestDto.Fullname,
-                            Note = orderRequestDto.Note,
-                            PaymentId = payment.Id,
-                            Status = 0,
-                            UserId = userId,
-                            PhoneNumber = orderRequestDto.PhoneNumber,
-                        };
-                        _context.Add(order);
-                        await _context.SaveChangesAsync();
-                        await _context.Database.CommitTransactionAsync();
-
-                        return Ok(paypalResponse);
-                    }
-                    catch (Exception ex)
-                    {
-                        await _context.Database.RollbackTransactionAsync();
-                        var innerExceptionMessage = ex.InnerException?.Message ?? ex.Message;
-                        return BadRequest($"Transaction failed: {innerExceptionMessage}");
-                    }
-                }
-                return BadRequest();
-                
-            }
+            } 
+            
             return BadRequest("Invalid payment method");
         }
 
@@ -272,7 +220,6 @@ namespace clothes_shop_api.Controllers
                         {
                             _context.Add(new OrderItem
                             {
-                                CartId = item.Id,
                                 OrderId = order.Id,
                                 QuantityId = item.QuantityId,
                                 Quantity = item.Quantity
@@ -295,7 +242,8 @@ namespace clothes_shop_api.Controllers
 
                 }
                 return BadRequest();
-            } else
+            } 
+            else
             {
                 try
                 {
@@ -318,6 +266,76 @@ namespace clothes_shop_api.Controllers
 
         }
 
+        [HttpPost("create-paypal-order")]
+        public async Task<ActionResult> CreatePayPalOrder(PayPalOrderRequestDto payPalOrderRequestDto)
+        {
+            try
+            {
+                var orderRequestDto = payPalOrderRequestDto.OrderRequestDto;
+                var transactionId = payPalOrderRequestDto.TransactionId;
+                var userId = User.GetUserId();
+                var order = new Order
+                {
+                    Id = new Random().Next(1000, 10000),
+                    Fullname = orderRequestDto.Fullname,
+                    Email = orderRequestDto.Email,
+                    Address = orderRequestDto.Address,
+                    Amount = orderRequestDto.Amount,
+                    Note = orderRequestDto.Note,
+                    PhoneNumber = orderRequestDto.PhoneNumber,
+                    Shipping = orderRequestDto.Shipping,
+                    Status = 1,
+                    UserId = userId,
+                };
+
+                await _context.Database.BeginTransactionAsync();
+                await _context.Orders.AddAsync(order);
+
+                var userCart = await _context.Carts
+                        .Where(x => x.UserId == userId)
+                        .ToListAsync();
+
+                var payment = new Payment
+                {
+                    OrderId = order.Id,
+                    Amount = orderRequestDto.Amount,
+                    Method = "Internet Banking",
+                    TransactionId = transactionId,
+                    Provider = "PayPal",
+                    Status = true,
+                    UserId = userId
+                };
+                await _context.Payments.AddAsync(payment);
+                await _context.SaveChangesAsync();
+                order.PaymentId = payment.Id;
+
+                var orderItems = new List<OrderItem>();
+                foreach (var item in userCart)
+                {
+                    _context.Add(new OrderItem
+                    {
+                        OrderId = order.Id,
+                        QuantityId = item.QuantityId,
+                        Quantity = item.Quantity
+                    });
+                }
+
+                _context.AddRange(orderItems);
+                _context.RemoveRange(userCart);
+                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
+
+                await _context.Database.CommitTransactionAsync();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                await _context.Database.RollbackTransactionAsync();
+                BadRequest(ex.Message);
+            }
+            return BadRequest();
+        }
+
         //[HttpPost("paypal-order")]
         //public async Task<ActionResult<Order>> PayPalOrder(decimal amount)
         //{
@@ -330,7 +348,7 @@ namespace clothes_shop_api.Controllers
         //    {
         //        return BadRequest(ex.Message);
         //    }
-            
+
         //}
 
         //[HttpGet("capture-paypal-order")]
@@ -350,41 +368,10 @@ namespace clothes_shop_api.Controllers
         //            return BadRequest(ex.Message);
         //        }
         //    }
-            
+
         //}
 
-        //[HttpGet("token")]
-        //public async Task<string> GetAccessTokenAsync()
-        //{
-        //    var authToken = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{c}:{a}"));
+        
 
-        //    //_httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", (authToken));
-        //    var content = new List<KeyValuePair<string, string>>
-        //    {
-        //        new("grant_type", "client_credentials")
-        //    };
-        //    var request = new HttpRequestMessage
-        //    {
-        //        RequestUri = new Uri($"{BaseUrl}/v1/oauth2/token"),
-        //        Method = System.Net.Http.HttpMethod.Post,
-        //        Headers =
-        //        {
-        //            { "Authorization", $"Basic {authToken}" }
-        //        },
-        //        Content = new FormUrlEncodedContent(content)
-        //    };
-
-
-        //    var httpClient = new HttpClient();
-        //    var httpResponse = await httpClient.SendAsync(request);
-        //    var jsonResponse = await httpResponse.Content.ReadAsStringAsync();
-        //    var response = JsonSerializer.Deserialize<AuthResponse>(jsonResponse);
-
-        //    //var jsonResponse = await response.Content.ReadAsStringAsync();
-        //    //var tokenResponse = JsonSerializer.Deserialize<AuthResponse>(jsonResponse);
-
-        //    return response?.access_token;
-        //}
-      
     }
 }

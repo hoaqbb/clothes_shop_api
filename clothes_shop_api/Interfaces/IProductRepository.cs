@@ -8,5 +8,6 @@ namespace clothes_shop_api.Interfaces
         Task<PagedList<ProductListDto>> GetAllProductsAsync(UserParams userParams);
         Task<PagedList<ProductListDto>> GetProductsByCategoryAsync(UserParams userParams, string category);
         Task<ProductDetailDto> GetProductBySlugAsync(string slug);
+        Task CreateProductAsync(CreateProductDto createProductDto);
     }
 }

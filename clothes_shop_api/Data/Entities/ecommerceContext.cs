@@ -100,8 +100,7 @@ namespace clothes_shop_api.Data.Entities
 
                 entity.Property(e => e.Address)
                     .HasMaxLength(3000)
-                    .HasColumnName("address")
-                    .IsFixedLength();
+                    .HasColumnName("address");
 
                 entity.Property(e => e.Amount)
                     .HasColumnType("decimal(18, 0)")
@@ -114,13 +113,11 @@ namespace clothes_shop_api.Data.Entities
 
                 entity.Property(e => e.Email)
                     .HasMaxLength(50)
-                    .HasColumnName("email")
-                    .IsFixedLength();
+                    .HasColumnName("email");
 
                 entity.Property(e => e.Fullname)
                     .HasMaxLength(100)
-                    .HasColumnName("fullname")
-                    .IsFixedLength();
+                    .HasColumnName("fullname");
 
                 entity.Property(e => e.Note)
                     .HasMaxLength(300)
@@ -130,8 +127,8 @@ namespace clothes_shop_api.Data.Entities
 
                 entity.Property(e => e.PhoneNumber)
                     .HasMaxLength(10)
-                    .IsUnicode(false)
-                    .HasColumnName("phone_number");
+                    .HasColumnName("phone_number")
+                    .IsFixedLength();
 
                 entity.Property(e => e.Shipping).HasColumnName("shipping");
 
@@ -160,18 +157,11 @@ namespace clothes_shop_api.Data.Entities
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.CartId).HasColumnName("cart_id");
-
                 entity.Property(e => e.OrderId).HasColumnName("order_id");
 
                 entity.Property(e => e.Quantity).HasColumnName("quantity");
 
                 entity.Property(e => e.QuantityId).HasColumnName("quantity_id");
-
-                entity.HasOne(d => d.Cart)
-                    .WithMany(p => p.OrderItems)
-                    .HasForeignKey(d => d.CartId)
-                    .HasConstraintName("FK_ORDER_ITEM_CART");
 
                 entity.HasOne(d => d.Order)
                     .WithMany(p => p.OrderItems)
@@ -214,8 +204,8 @@ namespace clothes_shop_api.Data.Entities
 
                 entity.Property(e => e.TransactionId)
                     .HasMaxLength(100)
-                    .HasColumnName("transaction_id")
-                    .IsFixedLength();
+                    .IsUnicode(false)
+                    .HasColumnName("transaction_id");
 
                 entity.Property(e => e.UpdateAt)
                     .HasColumnType("datetime")
@@ -313,6 +303,10 @@ namespace clothes_shop_api.Data.Entities
                 entity.Property(e => e.IsSub).HasColumnName("is_sub");
 
                 entity.Property(e => e.ProductId).HasColumnName("product_id");
+
+                entity.Property(e => e.PublicId)
+                    .HasMaxLength(100)
+                    .HasColumnName("public_id");
 
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.ProductImages)

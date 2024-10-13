@@ -23,6 +23,8 @@ namespace clothes_shop_api.Repositories
 
         public ICartRepository CartRepository => new CartRepository(_context, _mapper);
         public IOrderRepository OrderRepository => new OrderRepository(_context, _mapper);
+        public ICategoryRepository CategoryRepository => new CategoryRepository(_context, _mapper);
+        public IColorRepository ColorRepository => new ColorRepository(_context, _mapper);
 
         public async Task<bool> SaveAllAsync()
         {

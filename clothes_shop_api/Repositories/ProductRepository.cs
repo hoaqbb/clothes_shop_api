@@ -20,6 +20,7 @@ namespace clothes_shop_api.Repositories
             _context = context;
             _mapper = mapper;
         }
+
         public async Task<PagedList<ProductListDto>> GetAllProductsAsync(UserParams userParams)
         {
             var query = _context.Products.AsQueryable();
@@ -87,6 +88,32 @@ namespace clothes_shop_api.Repositories
                 userParams.PageNumber,
                 userParams.PageSize
                 );
+        }
+
+        public async Task CreateProductAsync(CreateProductDto createProductDto)
+        {
+            try
+            {
+                var createProduct = new Product
+                {
+                    Name = createProductDto.Name,
+                    Slug = createProductDto.Slug,
+                    Price = createProductDto.Price,
+                    Description = createProductDto.Description,
+                    Discount = createProductDto.Discount,
+                    CategoryId = createProductDto.CategoryId
+                };
+                await _context.Database.BeginTransactionAsync();
+                await _context.Products.AddAsync(createProduct);
+
+
+                await _context.SaveChangesAsync();
+                await _context.Database.CommitTransactionAsync();
+            } catch (Exception ex)
+            {
+                await _context.Database.RollbackTransactionAsync();
+            }
+            
         }
     }
 }

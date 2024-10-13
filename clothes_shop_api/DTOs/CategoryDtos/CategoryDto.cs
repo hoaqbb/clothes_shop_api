@@ -1,6 +1,6 @@
-﻿namespace clothes_shop_api.DTOs.SizeDtos
+﻿namespace clothes_shop_api.DTOs.CategoryDtos
 {
-    public class SizeDto
+    public class CategoryDto
     {
         public int Id { get; set; }
         public string Name { get; set; }
