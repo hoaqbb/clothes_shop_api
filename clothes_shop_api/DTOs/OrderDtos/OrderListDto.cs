@@ -8,6 +8,7 @@ namespace clothes_shop_api.DTOs.OrderDtos
         public decimal Amount { get; set; }
         public byte Status { get; set; }
         public DateTime CreateAt { get; set; }
+        public DateTime? UpdateAt { get; set; }
         public string Address { get; set; } = null!;
         public string Fullname { get; set; } = null!;
         public string PhoneNumber { get; set; } = null!;

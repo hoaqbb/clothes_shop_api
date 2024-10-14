@@ -5,7 +5,9 @@ namespace clothes_shop_api.Interfaces
 {
     public interface IOrderRepository
     {
+        Task<PagedList<OrderListDto>> GetAllOrderAsync(PaginationParams paginationParams);
         Task<PagedList<OrderListDto>> GetUserOrdersAsync(PaginationParams paginationParams, int userId);
         Task<OrderDetailDto> GetOrderDetailByIdAsync(int userId, int orderId);
+        Task<bool> UpdateOrderAsync(int id);
     }
 }

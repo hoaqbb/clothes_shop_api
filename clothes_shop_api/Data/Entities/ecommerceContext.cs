@@ -54,7 +54,6 @@ namespace clothes_shop_api.Data.Entities
                 entity.HasOne(d => d.QuantityNavigation)
                     .WithMany(p => p.Carts)
                     .HasForeignKey(d => d.QuantityId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_CART_QUANTITY");
 
                 entity.HasOne(d => d.User)
@@ -172,6 +171,7 @@ namespace clothes_shop_api.Data.Entities
                 entity.HasOne(d => d.QuantityNavigation)
                     .WithMany(p => p.OrderItems)
                     .HasForeignKey(d => d.QuantityId)
+                    .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_ORDER_ITEM_QUANTITY");
             });
 

@@ -29,6 +29,7 @@ namespace clothes_shop_api.Helpers
             CreateMap<Product, ProductDetailDto>()
                 .ForMember(dest => dest.ProductVariants, opt => opt.MapFrom(src =>
                     src.Quantities));
+            CreateMap<CreateProductDto, Product>();
 
             CreateMap<RegisterDto, User>();
             CreateMap<User, UserDetailDto>();

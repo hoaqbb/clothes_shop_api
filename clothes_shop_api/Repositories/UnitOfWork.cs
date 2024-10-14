@@ -9,17 +9,19 @@ namespace clothes_shop_api.Repositories
         private readonly ecommerceContext _context;
         private readonly IMapper _mapper;
         private readonly ITokenService _tokenService;
+        private readonly IFileService _fileService;
 
-        public UnitOfWork(ecommerceContext context, IMapper mapper, ITokenService tokenService)
+        public UnitOfWork(ecommerceContext context, IMapper mapper, ITokenService tokenService, IFileService fileService)
         {
             _context = context;
             _mapper = mapper;
             _tokenService = tokenService;
+            _fileService = fileService;
         }
 
         public IAccountRepository AccountRepository => new AccountRepository(_context, _mapper, _tokenService);
 
-        public IProductRepository ProductRepository => new ProductRepository(_context, _mapper);
+        public IProductRepository ProductRepository => new ProductRepository(_context, _mapper, _fileService);
 
         public ICartRepository CartRepository => new CartRepository(_context, _mapper);
         public IOrderRepository OrderRepository => new OrderRepository(_context, _mapper);

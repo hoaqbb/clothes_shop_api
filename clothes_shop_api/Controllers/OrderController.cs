@@ -38,7 +38,7 @@ namespace clothes_shop_api.Controllers
 
         [Authorize]
         [HttpGet("get-user-orders")]
-        public async Task<ActionResult<List<Order>>> GetUserOrders([FromQuery]PaginationParams paginationParams)
+        public async Task<ActionResult<List<OrderListDto>>> GetUserOrders([FromQuery]PaginationParams paginationParams)
         {
             var userId = User.GetUserId();
 
@@ -48,6 +48,18 @@ namespace clothes_shop_api.Controllers
                 userOrders.TotalCount, userOrders.TotalPages);
 
             return Ok(userOrders);
+        }
+
+        [Authorize]
+        [HttpGet("get-all-order")]
+        public async Task<ActionResult<List<OrderListDto>>> GetAllOrder([FromQuery]PaginationParams paginationParams)
+        {
+            var orderList = await _unitOfWork.OrderRepository.GetAllOrderAsync(paginationParams);
+
+            Response.AddPaginationHeader(orderList.CurrentPage, orderList.PageSize,
+                orderList.TotalCount, orderList.TotalPages);
+
+            return Ok(orderList);
         }
 
         [Authorize]
@@ -334,6 +346,17 @@ namespace clothes_shop_api.Controllers
                 BadRequest(ex.Message);
             }
             return BadRequest();
+        }
+
+        [HttpPut("update-status-order")]
+        public async Task<ActionResult> UpdateOrder(int id)
+        {
+            var isUpdated = await _unitOfWork.OrderRepository.UpdateOrderAsync(id);
+            if(!isUpdated)
+            {
+                return BadRequest();
+            }
+            return Ok();
         }
 
         //[HttpPost("paypal-order")]

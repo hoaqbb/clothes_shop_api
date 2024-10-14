@@ -20,6 +20,20 @@ namespace clothes_shop_api.Repositories
             _mapper = mapper;
         }
 
+        public async Task<PagedList<OrderListDto>> GetAllOrderAsync(PaginationParams paginationParams)
+        {
+            var query = _context.Orders
+                .Include(o => o.Payment)
+                .OrderByDescending(x => x.CreateAt)
+                .AsQueryable();
+
+            return await PagedList<OrderListDto>.CreateAsync(query.ProjectTo<OrderListDto>(
+               _mapper.ConfigurationProvider).AsNoTracking(),
+               paginationParams.PageNumber,
+               paginationParams.PageSize
+               );
+        }
+
         public async Task<OrderDetailDto> GetOrderDetailByIdAsync(int userId, int orderId)
         {
             var order = await _context.Orders
@@ -43,6 +57,23 @@ namespace clothes_shop_api.Repositories
                paginationParams.PageNumber, 
                paginationParams.PageSize
                );
+        }
+
+        public async Task<bool> UpdateOrderAsync(int id)
+        {
+            var order = await _context.Orders.FindAsync(id);
+
+            if (order is null)
+            {
+                return false;
+            }
+            order.Status += 1;
+            order.UpdateAt = DateTime.Now;
+            _context.Orders.Update(order);
+            if(await _context.SaveChangesAsync() > 0)
+                return true;
+
+            return false;
         }
     }
 }
