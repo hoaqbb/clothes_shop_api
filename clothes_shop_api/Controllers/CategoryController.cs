@@ -1,5 +1,6 @@
 ﻿using clothes_shop_api.DTOs.CategoryDtos;
 using clothes_shop_api.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +17,7 @@ namespace clothes_shop_api.Controllers
             _unitOfWork = unitOfWork;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("get-all-category")]
         public async Task<ActionResult<List<CategoryDto>>> GetAllCategory()
         {

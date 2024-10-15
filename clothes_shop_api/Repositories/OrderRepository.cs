@@ -34,14 +34,26 @@ namespace clothes_shop_api.Repositories
                );
         }
 
-        public async Task<OrderDetailDto> GetOrderDetailByIdAsync(int userId, int orderId)
+        public async Task<OrderDetailDto> GetOrderDetailByIdAsync(int userId, int orderId, string role)
         {
-            var order = await _context.Orders
+            if(role == "Customer")
+            {
+                var order = await _context.Orders
                 .Where(x => x.Id == orderId && x.UserId == userId)
                 .ProjectTo<OrderDetailDto>(_mapper.ConfigurationProvider)
                 .SingleOrDefaultAsync();
+                return order;
+            }
+            else
+            {
+                var order = await _context.Orders
+                    .Where(x => x.Id == orderId)
+                    .ProjectTo<OrderDetailDto>(_mapper.ConfigurationProvider)
+                    .SingleOrDefaultAsync();
 
-            return order;
+                return order;
+            }
+            
         }
 
         public async Task<PagedList<OrderListDto>> GetUserOrdersAsync(PaginationParams paginationParams, int userId)

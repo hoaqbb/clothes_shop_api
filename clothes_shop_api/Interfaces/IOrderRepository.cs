@@ -7,7 +7,7 @@ namespace clothes_shop_api.Interfaces
     {
         Task<PagedList<OrderListDto>> GetAllOrderAsync(PaginationParams paginationParams);
         Task<PagedList<OrderListDto>> GetUserOrdersAsync(PaginationParams paginationParams, int userId);
-        Task<OrderDetailDto> GetOrderDetailByIdAsync(int userId, int orderId);
+        Task<OrderDetailDto> GetOrderDetailByIdAsync(int userId, int orderId, string role);
         Task<bool> UpdateOrderAsync(int id);
     }
 }

@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using clothes_shop_api.Data.Entities;
 using clothes_shop_api.DTOs.SizeDtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,7 @@ namespace clothes_shop_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class SizeController : ControllerBase
     {
         private readonly ecommerceContext _context;

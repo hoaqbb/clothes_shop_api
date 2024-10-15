@@ -2,10 +2,12 @@
 using clothes_shop_api.Data.Entities;
 using clothes_shop_api.DTOs.ProductDtos;
 using clothes_shop_api.DTOs.ProductImageDtos;
+using clothes_shop_api.DTOs.QuantityDtos;
 using clothes_shop_api.Extensions;
 using clothes_shop_api.Helpers;
 using clothes_shop_api.Interfaces;
 using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -59,6 +61,7 @@ namespace clothes_shop_api.Controllers
             
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("create-product")]
         public async Task<ActionResult> CreateProduct(CreateProductDto createProduct)
         {
@@ -67,6 +70,7 @@ namespace clothes_shop_api.Controllers
             return BadRequest();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("update-product")]
         public async Task<ActionResult> UpdateProduct(UpdateProductDto updateProductDto)
         {
@@ -75,6 +79,7 @@ namespace clothes_shop_api.Controllers
             return BadRequest();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("delete-product/{id}")]
         public async Task<ActionResult> DeleteProduct(int id)
         {
@@ -83,6 +88,7 @@ namespace clothes_shop_api.Controllers
             return BadRequest();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("add-product-images")]
         public async Task<ActionResult<List<ProductImageDto>>> AddProductImages([FromForm]IFormFile[] files, [FromQuery]int id)
         {
@@ -141,7 +147,7 @@ namespace clothes_shop_api.Controllers
             }
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("delete-image/{productId}/{imageId}")]
         public async Task<ActionResult> DeleteImage(int productId, int imageId)
         {
@@ -172,6 +178,7 @@ namespace clothes_shop_api.Controllers
             return BadRequest("Failed to delete the image!");
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("set-main-image/{productId}")]
         public async Task<ActionResult> SetMainImage(int productId, [FromQuery]int imageId)
         {
@@ -193,6 +200,7 @@ namespace clothes_shop_api.Controllers
             return BadRequest("Failed to set main photo");
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("set-sub-image/{productId}")]
         public async Task<ActionResult> SetSubImage(int productId, [FromQuery]int imageId)
         {
@@ -214,6 +222,30 @@ namespace clothes_shop_api.Controllers
             if (await _unitOfWork.SaveAllAsync()) return NoContent();
 
             return BadRequest("Failed to set main photo");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("update-product-quantity/{id}")]
+        public async Task<ActionResult> UpdateProductQuantity(int id, List<QuantityDto> quantityUpdateDto)
+        {
+            var currentQuantity = _context.Quantities
+                .Include(x => x.Product)
+                .Where(x => x.ProductId == id)
+                .AsQueryable();
+            foreach (var item in quantityUpdateDto)
+            {
+                var quantity = currentQuantity.FirstOrDefault(x => x.Id == item.Id);
+                if (quantity is  null)
+                {
+                    return BadRequest();
+                }
+                if (quantity.Amount == item.Amount) continue; 
+                quantity.Amount = item.Amount;
+                _context.Quantities.Update(quantity);
+            }
+            if(await _unitOfWork.SaveAllAsync())
+                return Ok();
+            return BadRequest();
         }
     }
 }

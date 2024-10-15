@@ -29,6 +29,7 @@ namespace clothes_shop_api.Controllers
             return Ok(await _unitOfWork.CartRepository.GetCartByEmailAsync(email));
         }
 
+        [Authorize]
         [HttpPost("add-to-cart")]
         public async Task<ActionResult<CartDto>> AddToCart(CreateCartItemDto createCartItemDto)
         {
@@ -44,6 +45,7 @@ namespace clothes_shop_api.Controllers
             return BadRequest("Them san pham that bai");
         }
 
+        [Authorize]
         [HttpDelete("remove-cart-item/{id}")]
         public async Task<ActionResult> RemoveCartItem(int id)
         {

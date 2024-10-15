@@ -28,7 +28,7 @@ namespace clothes_shop_api.Controllers
         private readonly ecommerceContext _context;
         private readonly IVnPayService _vnPayService;
 
-        public OrderController(IUnitOfWork unitOfWork, IMapper mapper, ecommerceContext context, IVnPayService vnPayService, PayPalClient payPalClient)
+        public OrderController(IUnitOfWork unitOfWork, IMapper mapper, ecommerceContext context, IVnPayService vnPayService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -50,7 +50,7 @@ namespace clothes_shop_api.Controllers
             return Ok(userOrders);
         }
 
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpGet("get-all-order")]
         public async Task<ActionResult<List<OrderListDto>>> GetAllOrder([FromQuery]PaginationParams paginationParams)
         {
@@ -67,7 +67,8 @@ namespace clothes_shop_api.Controllers
         public async Task<ActionResult<OrderDetailDto>> GetOrderDetail(int orderId)
         {
             var userId = User.GetUserId();
-            var order = await _unitOfWork.OrderRepository.GetOrderDetailByIdAsync(userId, orderId);
+            string role = User.GetRole();
+            var order = await _unitOfWork.OrderRepository.GetOrderDetailByIdAsync(userId, orderId, role);
             if(order is not null)
             {
                 return Ok(order);
@@ -348,7 +349,8 @@ namespace clothes_shop_api.Controllers
             return BadRequest();
         }
 
-        [HttpPut("update-status-order")]
+        [Authorize(Roles = "Admin")]
+        [HttpPut("update-status-order/{id}")]
         public async Task<ActionResult> UpdateOrder(int id)
         {
             var isUpdated = await _unitOfWork.OrderRepository.UpdateOrderAsync(id);
