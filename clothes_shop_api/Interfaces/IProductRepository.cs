@@ -7,12 +7,13 @@ namespace clothes_shop_api.Interfaces
     public interface IProductRepository
     {
         Task<PagedList<ProductListDto>> GetAllProductsAsync(UserParams userParams);
-        Task<PagedList<ProductListDto>> GetProductsByCategoryAsync(UserParams userParams, string category);
+        Task<PagedList<ProductListDto>> GetProductsByCategoryAsync(UserParams userParams, string category, string role);
         Task<ProductDetailDto> GetProductBySlugAsync(string slug);
         Task<Product> GetProductByIdAsync(int id);
-        Task<bool> CreateProductAsync(CreateProductDto createProductDto);
+        Task CreateProductAsync(CreateProductDto createProductDto);
         Task AddProductImageAsync(int id, IFormFile file);
         Task<bool> UpdateProduct(UpdateProductDto updateProductDto);
+        Task<bool> UpdateProductStatusAsync(int id);
         Task<bool> DeleteProduct(int id);
     }
 }

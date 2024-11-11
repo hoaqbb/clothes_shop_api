@@ -4,6 +4,7 @@ using clothes_shop_api.Data.Entities;
 using clothes_shop_api.DTOs.UserDtos;
 using clothes_shop_api.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -11,11 +12,11 @@ namespace clothes_shop_api.Repositories
 {
     public class AccountRepository : IAccountRepository
     {
-        private readonly ecommerceContext _context;
+        private readonly ecommerce_decryptedContext _context;
         private readonly IMapper _mapper;
         private readonly ITokenService _tokenService;
 
-        public AccountRepository(ecommerceContext context, IMapper mapper, ITokenService tokenService)
+        public AccountRepository(ecommerce_decryptedContext context, IMapper mapper, ITokenService tokenService)
         {
             _context = context;
             _mapper = mapper;
@@ -69,6 +70,13 @@ namespace clothes_shop_api.Repositories
 
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
+
+            var userCart = new Cart
+            {
+                Id = Guid.NewGuid().ToString(),
+                UserId = user.Id
+            };
+            _context.Add(userCart);
 
             return new UserDto
             {

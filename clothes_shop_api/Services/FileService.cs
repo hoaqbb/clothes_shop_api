@@ -39,6 +39,20 @@ namespace clothes_shop_api.Services
             return uploadResult;
         }
 
+        public async Task<List<ImageUploadResult>> AddMultipleImageAsync(IFormFile[] files)
+        {
+            var results = new List<ImageUploadResult>();
+            if(files.Length > 0)
+            {
+                foreach (var file in files)
+                {
+                    results.Add(await AddImageAsync(file));
+                }
+            }
+
+            return results;
+        }
+
         public async Task<DeletionResult> DeleteImageAsync(string publicId)
         {
             var deleteParams = new DeletionParams(publicId);
@@ -46,16 +60,6 @@ namespace clothes_shop_api.Services
             var result = await _cloudinary.DestroyAsync(deleteParams);
 
             return result;
-        }
-
-        public Task UploadFile(IFormFile file)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UploadMultipleFiles(List<IFormFile> files)
-        {
-            throw new NotImplementedException();
         }
     }
 }

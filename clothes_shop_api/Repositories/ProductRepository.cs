@@ -4,6 +4,7 @@ using clothes_shop_api.Data.Entities;
 using clothes_shop_api.DTOs.ProductDtos;
 using clothes_shop_api.Helpers;
 using clothes_shop_api.Interfaces;
+using CloudinaryDotNet.Actions;
 using Microsoft.EntityFrameworkCore;
 using System.Drawing;
 using System.Linq;
@@ -11,13 +12,13 @@ using System.Linq.Expressions;
 
 namespace clothes_shop_api.Repositories
 {
-    public class ProductRepository : IProductRepository
+    public class ProductRepository : GenericRepository<Product>, IProductRepository
     {
-        private readonly ecommerceContext _context;
+        private readonly ecommerce_decryptedContext _context;
         private readonly IMapper _mapper;
         private readonly IFileService _fileService;
 
-        public ProductRepository(ecommerceContext context, IMapper mapper, IFileService fileService)
+        public ProductRepository(ecommerce_decryptedContext context, IMapper mapper, IFileService fileService) : base(context) 
         {
             _context = context;
             _mapper = mapper;
@@ -26,7 +27,10 @@ namespace clothes_shop_api.Repositories
 
         public async Task<PagedList<ProductListDto>> GetAllProductsAsync(UserParams userParams)
         {
-            var query = _context.Products.AsQueryable();
+            var query = _context.Products
+                .Where(p => p.IsVisible == true)
+                .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider)
+                .AsQueryable();
 
             query = userParams.SortBy switch
             {
@@ -37,7 +41,7 @@ namespace clothes_shop_api.Repositories
             };
 
             return await PagedList<ProductListDto>.CreateAsync(
-                query.ProjectTo<ProductListDto>(_mapper.ConfigurationProvider), 
+                query, 
                 userParams.PageNumber, 
                 userParams.PageSize);
         }
@@ -45,18 +49,28 @@ namespace clothes_shop_api.Repositories
         public async Task<ProductDetailDto> GetProductBySlugAsync(string slug)
         {
             var product = await _context.Products
-                .Where(p => p.Slug == slug)
+                .Where(p => p.Slug == slug && p.IsVisible == true)
                 .ProjectTo<ProductDetailDto>(_mapper.ConfigurationProvider)
                 .SingleOrDefaultAsync();
 
             return product;
         }
 
-        public async Task<PagedList<ProductListDto>> GetProductsByCategoryAsync(UserParams userParams, string category)
+        public async Task<PagedList<ProductListDto>> GetProductsByCategoryAsync(UserParams userParams, string category, string role)
         {
-            var query = _context.Products
-                .Include(p => p.Category)
+            IQueryable<ProductListDto> query;
+            if(role == "Admin")
+            {
+                query = _context.Products
+                .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider)
                 .AsQueryable();
+            } else
+            {
+                query = _context.Products
+                .Where(x => x.IsVisible == true)
+                .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider)
+                .AsQueryable();
+            }
 
             switch (category) 
             {
@@ -71,7 +85,7 @@ namespace clothes_shop_api.Repositories
                     }
                 default:
                     {
-                        query = query.Where(x => x.Category.Name == category);
+                        query = query.Where(x => x.Category == category);
                         break;
                     }
             }
@@ -79,24 +93,24 @@ namespace clothes_shop_api.Repositories
             {
                 query = userParams.SortBy switch
                 {
-                    "created_ascending" => query.OrderByDescending(x => x.CreateAt),
+                    "created_ascending" => query.OrderBy(x => x.CreateAt),
                     "price_ascending" => query.OrderBy(x => x.Price),
                     "price_descending" => query.OrderByDescending(x => x.Price),
-                    _ => query.OrderBy(x => x.CreateAt)
+                    _ => query.OrderByDescending(x => x.CreateAt)
                 };
             }
 
             return await PagedList<ProductListDto>.CreateAsync(
-                query.ProjectTo<ProductListDto>(_mapper.ConfigurationProvider).AsNoTracking(),
+                query.AsNoTracking(),
                 userParams.PageNumber,
                 userParams.PageSize
                 );
         }
 
-        public async Task<bool> CreateProductAsync(CreateProductDto createProductDto)
+        public async Task CreateProductAsync(CreateProductDto createProductDto)
         {
-            try
-            {
+            //try
+            //{
                 var createProduct = new Product
                 {
                     Name = createProductDto.Name,
@@ -106,7 +120,7 @@ namespace clothes_shop_api.Repositories
                     Discount = createProductDto.Discount,
                     CategoryId = createProductDto.CategoryId
                 };
-                await _context.Database.BeginTransactionAsync();
+                //await _context.Database.BeginTransactionAsync();
                 await _context.Products.AddAsync(createProduct);
                 await _context.SaveChangesAsync();
 
@@ -135,14 +149,54 @@ namespace clothes_shop_api.Repositories
                     }
                 }
 
-                await _context.SaveChangesAsync();
-                await _context.Database.CommitTransactionAsync();
-                return true;
-            } catch
-            {
-                await _context.Database.RollbackTransactionAsync();
-                return false;
-            }
+                var mainImgResult = await _fileService.AddImageAsync(createProductDto.MainImage);
+                if(mainImgResult.Error == null)
+                {
+                    _context.Add(new ProductImage
+                    {
+                        ProductId = createProduct.Id,
+                        IsMain = true,
+                        ImageUrl = mainImgResult.SecureUrl.AbsoluteUri,
+                        PublicId = mainImgResult.PublicId
+                    });
+                }
+
+                var subImgResult = await _fileService.AddImageAsync(createProductDto.SubImage);
+                if (subImgResult.Error == null)
+                {
+                    _context.Add(new ProductImage
+                    {
+                        ProductId = createProduct.Id,
+                        IsSub = true,
+                        ImageUrl = subImgResult.SecureUrl.AbsoluteUri,
+                        PublicId = subImgResult.PublicId
+                    });
+                }
+
+                var otherImgResults = await _fileService.AddMultipleImageAsync(createProductDto.ProductImages);
+                foreach (var item in otherImgResults)
+                {
+                    if (item.Error == null)
+                    {
+                        var image = new ProductImage
+                        {
+                            ImageUrl = item.SecureUrl.AbsoluteUri,
+                            PublicId = item.PublicId,
+                            ProductId = createProduct.Id
+                        };
+
+                        _context.Add(image);
+                    }
+                }
+
+                //await _context.SaveChangesAsync();
+                //await _context.Database.CommitTransactionAsync();
+
+            //} catch
+            //{
+            //    await _context.Database.RollbackTransactionAsync();
+            //    return false;
+            //}
             
         }
 
@@ -271,6 +325,18 @@ namespace clothes_shop_api.Repositories
                 await _context.Database.RollbackTransactionAsync();
                 return false;
             }
+        }
+
+        public async Task<bool> UpdateProductStatusAsync(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+
+            if (product is null) return false;
+
+            product.IsVisible = !product.IsVisible;
+            _context.Update(product);
+
+            return true;
         }
     }
 }

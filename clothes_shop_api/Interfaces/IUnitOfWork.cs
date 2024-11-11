@@ -1,6 +1,8 @@
-﻿namespace clothes_shop_api.Interfaces
+﻿using clothes_shop_api.Data.Entities;
+
+namespace clothes_shop_api.Interfaces
 {
-    public interface IUnitOfWork
+    public interface IUnitOfWork : IDisposable
     {
         IAccountRepository AccountRepository { get; }
         IProductRepository ProductRepository { get; }
@@ -8,7 +10,10 @@
         IOrderRepository OrderRepository { get; }
         ICategoryRepository CategoryRepository { get; }
         IColorRepository ColorRepository { get; }
-        Task<bool> SaveAllAsync();
+        Task<bool> SaveChangesAsync();
+        Task BeginTransactionAsync();
+        Task CommitAsync();
+        Task RollbackAsync();
         bool HasChanged();
     }
 }

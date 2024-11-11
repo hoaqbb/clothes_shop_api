@@ -12,7 +12,9 @@ namespace clothes_shop_api.DTOs.ProductDtos
         public string SubPhoto { get; set; }
         public ICollection<ColorDto> ProductColors { get; set; }
         public int? Discount { get; set; }
+        public bool isVisible { get; set; }
         public string Slug { get; set; } = null!;
         public string Category { get; set; }
+        public DateTime CreateAt { get; set; }
     }
 }

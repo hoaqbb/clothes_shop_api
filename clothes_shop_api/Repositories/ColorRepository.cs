@@ -9,10 +9,10 @@ namespace clothes_shop_api.Repositories
 {
     public class ColorRepository : IColorRepository
     {
-        private readonly ecommerceContext _context;
+        private readonly ecommerce_decryptedContext _context;
         private readonly IMapper _mapper;
 
-        public ColorRepository(ecommerceContext context, IMapper mapper)
+        public ColorRepository(ecommerce_decryptedContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;

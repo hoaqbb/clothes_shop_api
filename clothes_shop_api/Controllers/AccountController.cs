@@ -38,7 +38,23 @@ namespace clothes_shop_api.Controllers
             if (await _unitOfWork.AccountRepository.IsUserExistedAsync(registerDto.Email)) 
                 return BadRequest("Email is taken!");
 
-            return Ok(await _unitOfWork.AccountRepository.RegisterAsync(registerDto));
+            try
+            {
+                await _unitOfWork.BeginTransactionAsync();
+                var user = await _unitOfWork.AccountRepository.RegisterAsync(registerDto);
+                if (await _unitOfWork.SaveChangesAsync())
+                {
+                    await _unitOfWork.CommitAsync();
+                    return Ok(user);
+                }
+
+                return BadRequest("Falied to register!");
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                return BadRequest(ex.Message);
+            }
         }
 
         [Authorize]

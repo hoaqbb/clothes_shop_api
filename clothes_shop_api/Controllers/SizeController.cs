@@ -15,10 +15,10 @@ namespace clothes_shop_api.Controllers
     [Authorize(Roles = "Admin")]
     public class SizeController : ControllerBase
     {
-        private readonly ecommerceContext _context;
+        private readonly ecommerce_decryptedContext _context;
         private readonly IMapper _mapper;
 
-        public SizeController(ecommerceContext context, IMapper mapper)
+        public SizeController(ecommerce_decryptedContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;

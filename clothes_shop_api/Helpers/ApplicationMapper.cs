@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using clothes_shop_api.Data.Entities;
 using clothes_shop_api.DTOs;
-using clothes_shop_api.DTOs.CartDtos;
+using clothes_shop_api.DTOs.CartItemDtos;
 using clothes_shop_api.DTOs.CategoryDtos;
 using clothes_shop_api.DTOs.ColorDtos;
 using clothes_shop_api.DTOs.OrderDtos;
@@ -10,6 +10,7 @@ using clothes_shop_api.DTOs.ProductImageDtos;
 using clothes_shop_api.DTOs.QuantityDtos;
 using clothes_shop_api.DTOs.SizeDtos;
 using clothes_shop_api.DTOs.UserDtos;
+using CartDto = clothes_shop_api.DTOs.CartDto;
 
 namespace clothes_shop_api.Helpers
 {
@@ -50,7 +51,39 @@ namespace clothes_shop_api.Helpers
                 .ForMember(dest => dest.Size, opt => opt.MapFrom(src =>
                     src.Size.Name));
 
-            CreateMap<Cart, CartDto>()
+            CreateMap<Quantity, CartItemDto>()
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src =>
+                    src.Product.Name))
+                .ForMember(dest => dest.Photo, opt => opt.MapFrom(src =>
+                    src.Product.ProductImages.FirstOrDefault(x => x.IsMain).ImageUrl))
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src =>
+                    src.Product.Price))
+                .ForMember(dest => dest.Discount, opt => opt.MapFrom(src =>
+                    src.Product.Discount))
+                .ForMember(dest => dest.Slug, opt => opt.MapFrom(src =>
+                    src.Product.Slug))
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src =>
+                    src.Product.Category.Name))
+                .ForMember(dest => dest.ProductVariant, opt => opt.MapFrom(src => src));
+            
+
+            CreateMap<Cart, CartDto>();
+            //CreateMap<Cart, CartDto>()
+            //    .ForMember(dest => dest.Name, opt => opt.MapFrom(src =>
+            //        src.QuantityNavigation.Product.Name))
+            //    .ForMember(dest => dest.Photo, opt => opt.MapFrom(src =>
+            //        src.QuantityNavigation.Product.ProductImages.FirstOrDefault(x => x.IsMain).ImageUrl))
+            //    .ForMember(dest => dest.Price, opt => opt.MapFrom(src =>
+            //        src.QuantityNavigation.Product.Price))
+            //    .ForMember(dest => dest.Discount, opt => opt.MapFrom(src =>
+            //        src.QuantityNavigation.Product.Discount))
+            //    .ForMember(dest => dest.Slug, opt => opt.MapFrom(src =>
+            //        src.QuantityNavigation.Product.Slug))
+            //    .ForMember(dest => dest.Category, opt => opt.MapFrom(src =>
+            //        src.QuantityNavigation.Product.Category.Name))
+            //    .ForMember(dest => dest.ProductVariant, opt => opt.MapFrom(src =>
+            //        src.QuantityNavigation));
+            CreateMap<CartItem, CartItemDto>()
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src =>
                     src.QuantityNavigation.Product.Name))
                 .ForMember(dest => dest.Photo, opt => opt.MapFrom(src =>
@@ -61,6 +94,8 @@ namespace clothes_shop_api.Helpers
                     src.QuantityNavigation.Product.Discount))
                 .ForMember(dest => dest.Slug, opt => opt.MapFrom(src =>
                     src.QuantityNavigation.Product.Slug))
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src =>
+                    src.QuantityNavigation.Product.Category.Name))
                 .ForMember(dest => dest.ProductVariant, opt => opt.MapFrom(src =>
                     src.QuantityNavigation));
 
@@ -69,6 +104,8 @@ namespace clothes_shop_api.Helpers
                     src.Payment.Method));
 
             CreateMap<Order, OrderDetailDto>()
+                .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src =>
+                    src.Payment.Status))
                 .ForMember(dest => dest.TransactionId, opt => opt.MapFrom(src =>
                     src.Payment.TransactionId))
                 .ForMember(dest => dest.Provider, opt => opt.MapFrom(src =>

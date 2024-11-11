@@ -11,10 +11,10 @@ namespace clothes_shop_api.Repositories
 {
     public class OrderRepository : IOrderRepository
     {
-        private readonly ecommerceContext _context;
+        private readonly ecommerce_decryptedContext _context;
         private readonly IMapper _mapper;
 
-        public OrderRepository(ecommerceContext context, IMapper mapper)
+        public OrderRepository(ecommerce_decryptedContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;

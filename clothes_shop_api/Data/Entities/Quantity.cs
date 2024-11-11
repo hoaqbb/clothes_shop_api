@@ -7,7 +7,7 @@ namespace clothes_shop_api.Data.Entities
     {
         public Quantity()
         {
-            Carts = new HashSet<Cart>();
+            CartItems = new HashSet<CartItem>();
             OrderItems = new HashSet<OrderItem>();
         }
 
@@ -20,7 +20,7 @@ namespace clothes_shop_api.Data.Entities
         public virtual Product Product { get; set; } = null!;
         public virtual ProductColor? ProductColor { get; set; }
         public virtual Size Size { get; set; } = null!;
-        public virtual ICollection<Cart> Carts { get; set; }
+        public virtual ICollection<CartItem> CartItems { get; set; }
         public virtual ICollection<OrderItem> OrderItems { get; set; }
     }
 }

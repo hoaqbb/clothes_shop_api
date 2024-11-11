@@ -5,18 +5,19 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace clothes_shop_api.Data.Entities
 {
-    public partial class ecommerceContext : DbContext
+    public partial class ecommerce_decryptedContext : DbContext
     {
-        public ecommerceContext()
+        public ecommerce_decryptedContext()
         {
         }
 
-        public ecommerceContext(DbContextOptions<ecommerceContext> options)
+        public ecommerce_decryptedContext(DbContextOptions<ecommerce_decryptedContext> options)
             : base(options)
         {
         }
 
         public virtual DbSet<Cart> Carts { get; set; } = null!;
+        public virtual DbSet<CartItem> CartItems { get; set; } = null!;
         public virtual DbSet<Category> Categories { get; set; } = null!;
         public virtual DbSet<Color> Colors { get; set; } = null!;
         public virtual DbSet<Order> Orders { get; set; } = null!;
@@ -43,23 +44,45 @@ namespace clothes_shop_api.Data.Entities
             {
                 entity.ToTable("cart");
 
+                entity.Property(e => e.Id)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("id");
+
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Carts)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("FK_CART_USER");
+            });
+
+            modelBuilder.Entity<CartItem>(entity =>
+            {
+                entity.ToTable("cart_item");
+
                 entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.CartId)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("cart_id");
 
                 entity.Property(e => e.Quantity).HasColumnName("quantity");
 
                 entity.Property(e => e.QuantityId).HasColumnName("quantity_id");
 
-                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.HasOne(d => d.Cart)
+                    .WithMany(p => p.CartItems)
+                    .HasForeignKey(d => d.CartId)
+                    .HasConstraintName("FK_CART_ITEM_CART");
 
                 entity.HasOne(d => d.QuantityNavigation)
-                    .WithMany(p => p.Carts)
+                    .WithMany(p => p.CartItems)
                     .HasForeignKey(d => d.QuantityId)
-                    .HasConstraintName("FK_CART_QUANTITY");
-
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.Carts)
-                    .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK_CART_USER");
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_CART_ITEM_QUANTITY");
             });
 
             modelBuilder.Entity<Category>(entity =>
@@ -110,6 +133,8 @@ namespace clothes_shop_api.Data.Entities
                     .HasColumnName("create_at")
                     .HasDefaultValueSql("(getdate())");
 
+                entity.Property(e => e.DeliveryMethod).HasColumnName("delivery_method");
+
                 entity.Property(e => e.Email)
                     .HasMaxLength(50)
                     .HasColumnName("email");
@@ -129,7 +154,7 @@ namespace clothes_shop_api.Data.Entities
                     .HasColumnName("phone_number")
                     .IsFixedLength();
 
-                entity.Property(e => e.Shipping).HasColumnName("shipping");
+                entity.Property(e => e.ShippingFee).HasColumnName("shipping_fee");
 
                 entity.Property(e => e.Status).HasColumnName("status");
 
