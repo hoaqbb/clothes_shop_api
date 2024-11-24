@@ -7,6 +7,6 @@
         public int Amount { get; set; }
         public DateTime CreateAt { get; set; }
         public int OrderId { get; set; } = new Random().Next(1000, 10000);
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
     }
 }

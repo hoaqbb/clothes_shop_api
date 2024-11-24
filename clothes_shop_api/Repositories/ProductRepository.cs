@@ -4,11 +4,7 @@ using clothes_shop_api.Data.Entities;
 using clothes_shop_api.DTOs.ProductDtos;
 using clothes_shop_api.Helpers;
 using clothes_shop_api.Interfaces;
-using CloudinaryDotNet.Actions;
 using Microsoft.EntityFrameworkCore;
-using System.Drawing;
-using System.Linq;
-using System.Linq.Expressions;
 
 namespace clothes_shop_api.Repositories
 {
@@ -25,27 +21,6 @@ namespace clothes_shop_api.Repositories
             _fileService = fileService;
         }
 
-        public async Task<PagedList<ProductListDto>> GetAllProductsAsync(UserParams userParams)
-        {
-            var query = _context.Products
-                .Where(p => p.IsVisible == true)
-                .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider)
-                .AsQueryable();
-
-            query = userParams.SortBy switch
-            {
-                "price_ascending" => query.OrderBy(p => p.Price),
-                "price_descending" => query.OrderByDescending(p => p.Price),
-                "created_ascending" => query.OrderBy(p => p.CreateAt),
-                _ => query.OrderByDescending(p => p.CreateAt),
-            };
-
-            return await PagedList<ProductListDto>.CreateAsync(
-                query, 
-                userParams.PageNumber, 
-                userParams.PageSize);
-        }
-
         public async Task<ProductDetailDto> GetProductBySlugAsync(string slug)
         {
             var product = await _context.Products
@@ -54,57 +29,6 @@ namespace clothes_shop_api.Repositories
                 .SingleOrDefaultAsync();
 
             return product;
-        }
-
-        public async Task<PagedList<ProductListDto>> GetProductsByCategoryAsync(UserParams userParams, string category, string role)
-        {
-            IQueryable<ProductListDto> query;
-            if(role == "Admin")
-            {
-                query = _context.Products
-                .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider)
-                .AsQueryable();
-            } else
-            {
-                query = _context.Products
-                .Where(x => x.IsVisible == true)
-                .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider)
-                .AsQueryable();
-            }
-
-            switch (category) 
-            {
-                case "sale":
-                    {
-                        query = query.Where(x => x.Discount > 0);
-                        break;
-                    }
-                case "all":
-                    {
-                        break;
-                    }
-                default:
-                    {
-                        query = query.Where(x => x.Category == category);
-                        break;
-                    }
-            }
-            if(query.Any())
-            {
-                query = userParams.SortBy switch
-                {
-                    "created_ascending" => query.OrderBy(x => x.CreateAt),
-                    "price_ascending" => query.OrderBy(x => x.Price),
-                    "price_descending" => query.OrderByDescending(x => x.Price),
-                    _ => query.OrderByDescending(x => x.CreateAt)
-                };
-            }
-
-            return await PagedList<ProductListDto>.CreateAsync(
-                query.AsNoTracking(),
-                userParams.PageNumber,
-                userParams.PageSize
-                );
         }
 
         public async Task CreateProductAsync(CreateProductDto createProductDto)
@@ -118,7 +42,8 @@ namespace clothes_shop_api.Repositories
                     Price = createProductDto.Price,
                     Description = createProductDto.Description,
                     Discount = createProductDto.Discount,
-                    CategoryId = createProductDto.CategoryId
+                    CategoryId = createProductDto.CategoryId,
+                    IsVisible = false
                 };
                 //await _context.Database.BeginTransactionAsync();
                 await _context.Products.AddAsync(createProduct);
@@ -236,16 +161,10 @@ namespace clothes_shop_api.Repositories
             }
         }
 
-        public Task AddProductImageAsync(int id, IFormFile file)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<Product> GetProductByIdAsync(int id)
+        public async Task<ProductDetailDto> GetProductByIdAsync(int id)
         {
             return await _context.Products
-                .Include(p => p.ProductImages)
-                .Include(p => p.ProductColors)
+                .ProjectTo<ProductDetailDto>(_mapper.ConfigurationProvider)
                 .SingleOrDefaultAsync(x => x.Id == id);
         }
 
@@ -338,5 +257,80 @@ namespace clothes_shop_api.Repositories
 
             return true;
         }
+
+        public async Task<PagedList<ProductListDto>> GetAllProductsAsync(AdminProductParams adminProductParams)
+        {
+            IQueryable<ProductListDto> query = _context.Products
+                .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider)
+                .AsQueryable();
+
+            if(await query.AnyAsync())
+            {
+                query = adminProductParams.SortBy switch
+                {
+                    "created_ascending" => query.OrderBy(x => x.CreateAt),
+                    "price_ascending" => query.OrderBy(x => x.Price),
+                    "price_descending" => query.OrderByDescending(x => x.Price),
+                    _ => query.OrderByDescending(x => x.CreateAt)
+                };
+
+                query = adminProductParams.Status switch
+                {
+                    "show" => query.Where(x => x.isVisible == true),
+                    "hide" => query.Where(x => x.isVisible == false),
+                    _ => query
+                };
+
+                query = adminProductParams.Category switch
+                {
+                    "top" => query.Where(x => x.Category == "top"),
+                    "bottom" => query.Where(x => x.Category == "bottom"),
+                    "outerwear" => query.Where(x => x.Category == "outerwear"),
+                    "bag" => query.Where(x => x.Category == "bag"),
+                    "accessory" => query.Where(x => x.Category == "accessory"),
+                    _ => query
+                };
+            }
+
+            return await PagedList<ProductListDto>.CreateAsync(
+                query.AsNoTracking(),
+                adminProductParams.PageNumber,
+                adminProductParams.PageSize
+                );
+        }
+
+        public async Task<PagedList<ProductListDto>> GetProductsAsync(UserProductParams userParams)
+        {
+            IQueryable<ProductListDto> query = _context.Products
+                .Where(p => p.IsVisible == true)
+                .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider)
+                .AsQueryable();
+
+            if(await query.AnyAsync())
+            {
+                query = userParams.category switch
+                {
+                    "sale" => query = query.Where(x => x.Discount > 0),
+                    "all" => query,
+                    _ => query.Where(x => x.Category == userParams.category)
+                };
+
+                query = userParams.SortBy switch
+                {
+                    "created_ascending" => query.OrderBy(x => x.CreateAt),
+                    "price_ascending" => query.OrderBy(x => x.Price),
+                    "price_descending" => query.OrderByDescending(x => x.Price),
+                    _ => query.OrderByDescending(x => x.CreateAt)
+                };
+            }
+            
+            return await PagedList<ProductListDto>.CreateAsync(
+                query.AsNoTracking(), 
+                userParams.PageNumber, 
+                userParams.PageSize
+                );
+            
+        }
+
     }
 }

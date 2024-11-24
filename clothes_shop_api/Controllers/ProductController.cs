@@ -8,10 +8,9 @@ using clothes_shop_api.Helpers;
 using clothes_shop_api.Interfaces;
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
+using System.Data;
 
 namespace clothes_shop_api.Controllers
 {
@@ -21,10 +20,11 @@ namespace clothes_shop_api.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFileService _fileService;
-        private readonly ecommerceContext _context;
+        private readonly ecommerce_decryptedContext _context;
         private readonly IMapper _mapper;
 
-        public ProductController(IUnitOfWork unitOfWork, IFileService fileService, ecommerceContext context, IMapper mapper) 
+        public ProductController(IUnitOfWork unitOfWork, IFileService fileService, 
+            ecommerce_decryptedContext context, IMapper mapper) 
         {
             _unitOfWork = unitOfWork;
             _fileService = fileService;
@@ -33,9 +33,18 @@ namespace clothes_shop_api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductListDto>>> GetAllProducts([FromQuery]UserParams userParams)
+        public async Task<ActionResult<IEnumerable<ProductListDto>>> GetAllProducts2([FromQuery] UserProductParams userParams)
         {
-            return Ok(await _unitOfWork.ProductRepository.GetAllProductsAsync(userParams));
+            var products = await _unitOfWork.ProductRepository.GetProductsAsync(userParams);
+
+            if(products.Any())
+            {
+                Response.AddPaginationHeader(products.CurrentPage, products.PageSize,
+                    products.TotalCount, products.TotalPages);
+                return Ok(products);
+            }
+            
+            return NotFound();
         }
 
         [HttpGet("{slug}")]
@@ -48,26 +57,28 @@ namespace clothes_shop_api.Controllers
             return NotFound("Product not found!");
         }
 
-        [HttpGet("categories/{category}")]
-        public async Task<ActionResult<IEnumerable<ProductListDto>>> GetProductsByCategory([FromQuery]UserParams userParams ,string category)
-        {
-            var products = await _unitOfWork.ProductRepository.GetProductsByCategoryAsync(userParams, category);
-
-            Response.AddPaginationHeader(products.CurrentPage, products.PageSize, 
-                products.TotalCount, products.TotalPages);
-            //if (products.IsNullOrEmpty())
-            //    return NotFound("Product not found!");
-            return Ok(products);
-            
-        }
-
         [Authorize(Roles = "Admin")]
         [HttpPost("create-product")]
-        public async Task<ActionResult> CreateProduct(CreateProductDto createProduct)
+        public async Task<ActionResult> CreateProduct([FromForm]CreateProductDto createProduct)
         {
-            if(await _unitOfWork.ProductRepository.CreateProductAsync(createProduct))
-                return Ok();
-            return BadRequest();
+            //check it later
+            try
+            {
+                await _unitOfWork.BeginTransactionAsync();
+                await _unitOfWork.ProductRepository.CreateProductAsync(createProduct);
+                if (_unitOfWork.HasChanged())
+                {
+                    await _unitOfWork.SaveChangesAsync();
+                    await _unitOfWork.CommitAsync();
+                    return Ok();
+                }
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                return BadRequest(ex.Message);
+            }
         }
 
         [Authorize(Roles = "Admin")]
@@ -92,7 +103,11 @@ namespace clothes_shop_api.Controllers
         [HttpPost("add-product-images")]
         public async Task<ActionResult<List<ProductImageDto>>> AddProductImages([FromForm]IFormFile[] files, [FromQuery]int id)
         {
-            var product = await _unitOfWork.ProductRepository.GetProductByIdAsync(id);
+            var product = await _context.Products
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductColors)
+                .SingleOrDefaultAsync(x => x.Id == id);
+
             var result = new List<ImageUploadResult>();
 
             try
@@ -173,7 +188,7 @@ namespace clothes_shop_api.Controllers
 
             product.ProductImages.Remove(image);
 
-            if (await _unitOfWork.SaveAllAsync()) return Ok();
+            if (await _unitOfWork.SaveChangesAsync()) return Ok();
 
             return BadRequest("Failed to delete the image!");
         }
@@ -195,7 +210,7 @@ namespace clothes_shop_api.Controllers
             if (currentMain != null) currentMain.IsMain = false;
             image.IsMain = true;
 
-            if (await _unitOfWork.SaveAllAsync()) return NoContent();
+            if (await _unitOfWork.SaveChangesAsync()) return NoContent();
 
             return BadRequest("Failed to set main photo");
         }
@@ -219,7 +234,7 @@ namespace clothes_shop_api.Controllers
             if (currentSub != null) currentSub.IsSub = false;
             image.IsSub = true;
 
-            if (await _unitOfWork.SaveAllAsync()) return NoContent();
+            if (await _unitOfWork.SaveChangesAsync()) return NoContent();
 
             return BadRequest("Failed to set main photo");
         }
@@ -243,9 +258,22 @@ namespace clothes_shop_api.Controllers
                 quantity.Amount = item.Amount;
                 _context.Quantities.Update(quantity);
             }
-            if(await _unitOfWork.SaveAllAsync())
+            if(await _unitOfWork.SaveChangesAsync())
                 return Ok();
             return BadRequest();
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("update-product-status/{id}")]
+        public async Task<ActionResult> UpdateProductStatus(int id)
+        {
+            await _unitOfWork.ProductRepository.UpdateProductStatusAsync(id);
+            
+            if (await _unitOfWork.SaveChangesAsync())
+                return NoContent();
+
+            return BadRequest("Failed to update product status!");
+        }
+
     }
 }

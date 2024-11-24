@@ -12,7 +12,7 @@ namespace clothes_shop_api.Data.Entities
 
         public int Id { get; set; }
         public int OrderId { get; set; }
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
         public string Method { get; set; } = null!;
         public string? Provider { get; set; }
         public bool Status { get; set; }

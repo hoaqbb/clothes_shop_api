@@ -6,12 +6,11 @@ namespace clothes_shop_api.Interfaces
 {
     public interface IProductRepository
     {
-        Task<PagedList<ProductListDto>> GetAllProductsAsync(UserParams userParams);
-        Task<PagedList<ProductListDto>> GetProductsByCategoryAsync(UserParams userParams, string category, string role);
+        Task<PagedList<ProductListDto>> GetProductsAsync(UserProductParams userParams);
+        Task<PagedList<ProductListDto>> GetAllProductsAsync(AdminProductParams adminProductParams);
         Task<ProductDetailDto> GetProductBySlugAsync(string slug);
-        Task<Product> GetProductByIdAsync(int id);
+        Task<ProductDetailDto> GetProductByIdAsync(int id);
         Task CreateProductAsync(CreateProductDto createProductDto);
-        Task AddProductImageAsync(int id, IFormFile file);
         Task<bool> UpdateProduct(UpdateProductDto updateProductDto);
         Task<bool> UpdateProductStatusAsync(int id);
         Task<bool> DeleteProduct(int id);

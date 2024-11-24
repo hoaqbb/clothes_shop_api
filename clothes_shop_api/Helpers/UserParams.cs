@@ -4,4 +4,10 @@
     {
         public string SortBy { get; set; } = "created_descending";
     }
+
+    public class UserProductParams : PaginationParams
+    {
+        public string category { get; set; } = "all";
+        public string SortBy { get; set; } = "created_descending";
+    }
 }
