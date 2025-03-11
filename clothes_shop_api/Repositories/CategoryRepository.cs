@@ -7,12 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace clothes_shop_api.Repositories
 {
-    public class CategoryRepository : ICategoryRepository
+    public class CategoryRepository : GenericRepository<Category>, ICategoryRepository
     {
         private readonly ecommerce_decryptedContext _context;
         private readonly IMapper _mapper;
 
-        public CategoryRepository(ecommerce_decryptedContext context, IMapper mapper)
+        public CategoryRepository(ecommerce_decryptedContext context, IMapper mapper) : base(context)
         {
             _context = context;
             _mapper = mapper;
@@ -26,20 +26,6 @@ namespace clothes_shop_api.Repositories
                 .ToListAsync();
 
             return categories;
-        }
-        public Task CreateCategoryAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task DeleteCategoryAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateCategoryAsync()
-        {
-            throw new NotImplementedException();
         }
     }
 }

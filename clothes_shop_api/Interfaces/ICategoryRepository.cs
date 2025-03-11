@@ -1,12 +1,10 @@
-﻿using clothes_shop_api.DTOs.CategoryDtos;
+﻿using clothes_shop_api.Data.Entities;
+using clothes_shop_api.DTOs.CategoryDtos;
 
 namespace clothes_shop_api.Interfaces
 {
-    public interface ICategoryRepository
+    public interface ICategoryRepository : IGenericRepository<Category>
     {
         Task<IEnumerable<CategoryDto>> GetAllCategoryAsync();
-        Task CreateCategoryAsync();
-        Task DeleteCategoryAsync();
-        Task UpdateCategoryAsync();
     }
 }
