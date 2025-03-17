@@ -35,6 +35,7 @@ namespace clothes_shop_api.Helpers
             CreateMap<RegisterDto, User>();
             CreateMap<User, UserDetailDto>();
 
+            CreateMap<Color, ColorDto>();
             CreateMap<Color, ColorListDto>()
                 .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => 
                     src.ProductColors.Select(p => p.ProductId).Distinct().Count()));

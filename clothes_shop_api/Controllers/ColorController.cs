@@ -12,20 +12,18 @@ namespace clothes_shop_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class ColorController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly ecommerce_decryptedContext _context;
 
-        public ColorController(IUnitOfWork unitOfWork, IMapper mapper, ecommerce_decryptedContext context)
+        public ColorController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _context = context;
         }
 
-        //[Authorize(Roles = "Admin")]
         [HttpGet("get-all-color")]
         public async Task<ActionResult> GetAllColor()
         {
@@ -35,7 +33,7 @@ namespace clothes_shop_api.Controllers
 
         // POST api/<ValuesController>
         [HttpPost]
-        public async Task<ActionResult> CreateColor(ColorDto colorDto)
+        public async Task<ActionResult> CreateColor(CreateColorDto colorDto)
         {
             var color = new Color
             {
@@ -52,7 +50,7 @@ namespace clothes_shop_api.Controllers
 
         // PUT api/<ValuesController>/5
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, ColorDto colorDto)
+        public async Task<ActionResult> Put(int id, CreateColorDto colorDto)
         {
             
             var color = await _unitOfWork.ColorRepository.GetByIdAsync(id);
