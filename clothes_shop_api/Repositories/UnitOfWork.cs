@@ -31,6 +31,7 @@ namespace clothes_shop_api.Repositories
         public IOrderRepository OrderRepository => new OrderRepository(_context, _mapper);
         public ICategoryRepository CategoryRepository => new CategoryRepository(_context, _mapper);
         public IColorRepository ColorRepository => new ColorRepository(_context, _mapper);
+        public ISizeRepository SizeRepository => new SizeRepository(_context);
 
         public bool HasChanged()
         {

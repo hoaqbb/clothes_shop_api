@@ -7,39 +7,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace clothes_shop_api.Repositories
 {
-    public class ColorRepository : IColorRepository
+    public class ColorRepository : GenericRepository<Color>, IColorRepository
     {
         private readonly ecommerce_decryptedContext _context;
         private readonly IMapper _mapper;
 
-        public ColorRepository(ecommerce_decryptedContext context, IMapper mapper)
+        public ColorRepository(ecommerce_decryptedContext context, IMapper mapper) : base(context)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<ColorDto>> GetAllColorAsync()
+        public async Task<IEnumerable<ColorListDto>> GetAllColorAsync()
         {
-            return await _context.Colors
-                .ProjectTo<ColorDto>(_mapper.ConfigurationProvider)
-                .AsNoTracking()
+            var colors = await _context.Colors
+                .ProjectTo<ColorListDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
-        }
-        public Task CreateColorAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task DeleteColorAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        
-
-        public Task UpdateColorAsync()
-        {
-            throw new NotImplementedException();
+            return colors;
         }
     }
 }
