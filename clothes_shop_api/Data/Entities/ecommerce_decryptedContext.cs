@@ -190,7 +190,6 @@ namespace clothes_shop_api.Data.Entities
                 entity.HasOne(d => d.Order)
                     .WithMany(p => p.OrderItems)
                     .HasForeignKey(d => d.OrderId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ORDER_ITEM_ORDER");
 
                 entity.HasOne(d => d.QuantityNavigation)
@@ -241,7 +240,6 @@ namespace clothes_shop_api.Data.Entities
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Payments)
                     .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_PAYMENT_USER");
             });
 
@@ -287,6 +285,7 @@ namespace clothes_shop_api.Data.Entities
                 entity.HasOne(d => d.Category)
                     .WithMany(p => p.Products)
                     .HasForeignKey(d => d.CategoryId)
+                    .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_product_category");
             });
 
@@ -357,17 +356,18 @@ namespace clothes_shop_api.Data.Entities
                 entity.HasOne(d => d.ProductColor)
                     .WithMany(p => p.Quantities)
                     .HasForeignKey(d => d.ProductColorId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_quantity_product_color");
 
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.Quantities)
                     .HasForeignKey(d => d.ProductId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_quantity_product");
 
                 entity.HasOne(d => d.Size)
                     .WithMany(p => p.Quantities)
                     .HasForeignKey(d => d.SizeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_quantity_size");
             });
 

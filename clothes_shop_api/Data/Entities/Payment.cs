@@ -21,7 +21,7 @@ namespace clothes_shop_api.Data.Entities
         public DateTime? UpdateAt { get; set; }
         public string? TransactionId { get; set; }
 
-        public virtual User User { get; set; } = null!;
+        public virtual User? User { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
     }
 }
