@@ -10,6 +10,7 @@ namespace clothes_shop_api.Interfaces
         IOrderRepository OrderRepository { get; }
         ICategoryRepository CategoryRepository { get; }
         IColorRepository ColorRepository { get; }
+        ISizeRepository SizeRepository { get; }
         Task<bool> SaveChangesAsync();
         Task BeginTransactionAsync();
         Task CommitAsync();
