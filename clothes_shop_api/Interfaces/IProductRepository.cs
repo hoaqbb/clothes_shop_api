@@ -14,5 +14,6 @@ namespace clothes_shop_api.Interfaces
         Task<bool> UpdateProduct(UpdateProductDto updateProductDto);
         Task<bool> UpdateProductStatusAsync(int id);
         Task<bool> DeleteProduct(int id);
+        Task<PagedList<ProductListDto>> SearchProductAsync(string keyword, PaginationParams param);
     }
 }

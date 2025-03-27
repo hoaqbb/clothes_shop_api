@@ -14,7 +14,7 @@ namespace clothes_shop_api.Repositories
         private readonly IMapper _mapper;
         private readonly IFileService _fileService;
 
-        public ProductRepository(ecommerce_decryptedContext context, IMapper mapper, IFileService fileService) : base(context) 
+        public ProductRepository(ecommerce_decryptedContext context, IMapper mapper, IFileService fileService) : base(context)
         {
             _context = context;
             _mapper = mapper;
@@ -35,94 +35,94 @@ namespace clothes_shop_api.Repositories
         {
             //try
             //{
-                var createProduct = new Product
-                {
-                    Name = createProductDto.Name,
-                    Slug = createProductDto.Slug,
-                    Price = createProductDto.Price,
-                    Description = createProductDto.Description,
-                    Discount = createProductDto.Discount,
-                    CategoryId = createProductDto.CategoryId,
-                    IsVisible = false
-                };
-                //await _context.Database.BeginTransactionAsync();
-                await _context.Products.AddAsync(createProduct);
-                await _context.SaveChangesAsync();
+            var createProduct = new Product
+            {
+                Name = createProductDto.Name,
+                Slug = createProductDto.Slug,
+                Price = createProductDto.Price,
+                Description = createProductDto.Description,
+                Discount = createProductDto.Discount,
+                CategoryId = createProductDto.CategoryId,
+                IsVisible = false
+            };
+            //await _context.Database.BeginTransactionAsync();
+            await _context.Products.AddAsync(createProduct);
+            await _context.SaveChangesAsync();
 
-                var s = new List<ProductColor>();
-                foreach (var item in createProductDto.ProductColors) 
+            var s = new List<ProductColor>();
+            foreach (var item in createProductDto.ProductColors)
+            {
+                var c = await _context.ProductColors.AddAsync(new ProductColor
                 {
-                    var c = await _context.ProductColors.AddAsync(new ProductColor
+                    ProductId = createProduct.Id,
+                    ColorId = item,
+                });
+
+                s.Add(c.Entity);
+            }
+            await _context.SaveChangesAsync();
+            foreach (var item in createProductDto.ProductSizes)
+            {
+                foreach (var item1 in s)
+                {
+                    await _context.Quantities.AddAsync(new Quantity
                     {
                         ProductId = createProduct.Id,
-                        ColorId = item,
-                    });
-                    
-                    s.Add(c.Entity);    
-                }
-                await _context.SaveChangesAsync();
-                foreach (var item in createProductDto.ProductSizes)
-                {
-                    foreach (var item1 in s)
-                    {
-                        await _context.Quantities.AddAsync(new Quantity
-                        {
-                            ProductId = createProduct.Id,
-                            ProductColorId = item1.Id,
-                            SizeId = item,
-                        });
-                    }
-                }
-
-                var mainImgResult = await _fileService.AddImageAsync(createProductDto.MainImage);
-                if(mainImgResult.Error == null)
-                {
-                    _context.Add(new ProductImage
-                    {
-                        ProductId = createProduct.Id,
-                        IsMain = true,
-                        ImageUrl = mainImgResult.SecureUrl.AbsoluteUri,
-                        PublicId = mainImgResult.PublicId
+                        ProductColorId = item1.Id,
+                        SizeId = item,
                     });
                 }
+            }
 
-                var subImgResult = await _fileService.AddImageAsync(createProductDto.SubImage);
-                if (subImgResult.Error == null)
+            var mainImgResult = await _fileService.AddImageAsync(createProductDto.MainImage);
+            if (mainImgResult.Error == null)
+            {
+                _context.Add(new ProductImage
                 {
-                    _context.Add(new ProductImage
-                    {
-                        ProductId = createProduct.Id,
-                        IsSub = true,
-                        ImageUrl = subImgResult.SecureUrl.AbsoluteUri,
-                        PublicId = subImgResult.PublicId
-                    });
-                }
+                    ProductId = createProduct.Id,
+                    IsMain = true,
+                    ImageUrl = mainImgResult.SecureUrl.AbsoluteUri,
+                    PublicId = mainImgResult.PublicId
+                });
+            }
 
-                var otherImgResults = await _fileService.AddMultipleImageAsync(createProductDto.ProductImages);
-                foreach (var item in otherImgResults)
+            var subImgResult = await _fileService.AddImageAsync(createProductDto.SubImage);
+            if (subImgResult.Error == null)
+            {
+                _context.Add(new ProductImage
                 {
-                    if (item.Error == null)
+                    ProductId = createProduct.Id,
+                    IsSub = true,
+                    ImageUrl = subImgResult.SecureUrl.AbsoluteUri,
+                    PublicId = subImgResult.PublicId
+                });
+            }
+
+            var otherImgResults = await _fileService.AddMultipleImageAsync(createProductDto.ProductImages);
+            foreach (var item in otherImgResults)
+            {
+                if (item.Error == null)
+                {
+                    var image = new ProductImage
                     {
-                        var image = new ProductImage
-                        {
-                            ImageUrl = item.SecureUrl.AbsoluteUri,
-                            PublicId = item.PublicId,
-                            ProductId = createProduct.Id
-                        };
+                        ImageUrl = item.SecureUrl.AbsoluteUri,
+                        PublicId = item.PublicId,
+                        ProductId = createProduct.Id
+                    };
 
-                        _context.Add(image);
-                    }
+                    _context.Add(image);
                 }
+            }
 
-                //await _context.SaveChangesAsync();
-                //await _context.Database.CommitTransactionAsync();
+            //await _context.SaveChangesAsync();
+            //await _context.Database.CommitTransactionAsync();
 
             //} catch
             //{
             //    await _context.Database.RollbackTransactionAsync();
             //    return false;
             //}
-            
+
         }
 
         public async Task<bool> DeleteProduct(int id)
@@ -175,7 +175,7 @@ namespace clothes_shop_api.Repositories
                 .Include(p => p.Quantities)
                 .FirstOrDefaultAsync(x => x.Id == updateProductDto.Id);
 
-            if(product is null) return false;
+            if (product is null) return false;
 
             try
             {
@@ -199,7 +199,7 @@ namespace clothes_shop_api.Repositories
                 //    if (updateProductDto.ProductColors.Contains(item.ColorId))
                 //        mergedProductColors.Add(item);
                 //}
-                
+
                 //foreach (var item in updateProductDto.ProductColors)
                 //{
                 //    if (!mergedProductColors.Any(p => p.ColorId == item))
@@ -210,7 +210,7 @@ namespace clothes_shop_api.Repositories
                 //            ColorId = item
                 //        });
                 //    }
-                    
+
                 //}
 
                 //_context.ProductColors.AddRange(mergedProductColors);
@@ -236,7 +236,7 @@ namespace clothes_shop_api.Repositories
                     await _context.Database.CommitTransactionAsync();
                     return true;
                 }
-                    
+
                 return false;
             }
             catch
@@ -264,7 +264,7 @@ namespace clothes_shop_api.Repositories
                 .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider)
                 .AsQueryable();
 
-            if(await query.AnyAsync())
+            if (await query.AnyAsync())
             {
                 query = adminProductParams.SortBy switch
                 {
@@ -306,7 +306,7 @@ namespace clothes_shop_api.Repositories
                 .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider)
                 .AsQueryable();
 
-            if(await query.AnyAsync())
+            if (await query.AnyAsync())
             {
                 query = userParams.category switch
                 {
@@ -323,14 +323,27 @@ namespace clothes_shop_api.Repositories
                     _ => query.OrderByDescending(x => x.CreateAt)
                 };
             }
-            
+
             return await PagedList<ProductListDto>.CreateAsync(
-                query.AsNoTracking(), 
-                userParams.PageNumber, 
+                query.AsNoTracking(),
+                userParams.PageNumber,
                 userParams.PageSize
                 );
-            
+
         }
 
+        public async Task<PagedList<ProductListDto>> SearchProductAsync(string keyword, PaginationParams param)
+        {
+            var query = _context.Products
+                .Where(p => p.IsVisible == true && p.Name.Contains(keyword))
+                .ProjectTo<ProductListDto>(_mapper.ConfigurationProvider);
+
+            var products = await PagedList<ProductListDto>.CreateAsync(
+                query.AsNoTracking(),
+                param.PageNumber,
+                param.PageSize
+                );
+            return products;
+        }
     }
 }

@@ -23,8 +23,8 @@ namespace clothes_shop_api.Controllers
         private readonly ecommerce_decryptedContext _context;
         private readonly IMapper _mapper;
 
-        public ProductController(IUnitOfWork unitOfWork, IFileService fileService, 
-            ecommerce_decryptedContext context, IMapper mapper) 
+        public ProductController(IUnitOfWork unitOfWork, IFileService fileService,
+            ecommerce_decryptedContext context, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _fileService = fileService;
@@ -33,17 +33,17 @@ namespace clothes_shop_api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductListDto>>> GetAllProducts2([FromQuery] UserProductParams userParams)
+        public async Task<ActionResult<IEnumerable<ProductListDto>>> GetAllProducts([FromQuery] UserProductParams userParams)
         {
             var products = await _unitOfWork.ProductRepository.GetProductsAsync(userParams);
 
-            if(products.Any())
+            if (products.Any())
             {
                 Response.AddPaginationHeader(products.CurrentPage, products.PageSize,
                     products.TotalCount, products.TotalPages);
                 return Ok(products);
             }
-            
+
             return NotFound();
         }
 
@@ -59,7 +59,7 @@ namespace clothes_shop_api.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPost("create-product")]
-        public async Task<ActionResult> CreateProduct([FromForm]CreateProductDto createProduct)
+        public async Task<ActionResult> CreateProduct([FromForm] CreateProductDto createProduct)
         {
             //check it later
             try
@@ -90,18 +90,32 @@ namespace clothes_shop_api.Controllers
             return BadRequest();
         }
 
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchProduct([FromQuery] string keyword, [FromQuery] PaginationParams param)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                return NoContent();
+            }
+
+            var products = await _unitOfWork.ProductRepository.SearchProductAsync(keyword, param);
+            Response.AddPaginationHeader(products.CurrentPage, products.PageSize,
+                    products.TotalCount, products.TotalPages);
+            return Ok(products);
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpDelete("delete-product/{id}")]
         public async Task<ActionResult> DeleteProduct(int id)
         {
-            if(await _unitOfWork.ProductRepository.DeleteProduct(id))
+            if (await _unitOfWork.ProductRepository.DeleteProduct(id))
                 return Ok();
             return BadRequest();
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPost("add-product-images")]
-        public async Task<ActionResult<List<ProductImageDto>>> AddProductImages([FromForm]IFormFile[] files, [FromQuery]int id)
+        public async Task<ActionResult<List<ProductImageDto>>> AddProductImages([FromForm] IFormFile[] files, [FromQuery] int id)
         {
             var product = await _context.Products
                 .Include(p => p.ProductImages)
@@ -125,7 +139,7 @@ namespace clothes_shop_api.Controllers
                         await _context.Database.RollbackTransactionAsync();
                         return BadRequest(item.Error.Message);
                     }
-                        
+
                     var image = new ProductImage
                     {
                         ImageUrl = item.SecureUrl.AbsoluteUri,
@@ -147,7 +161,7 @@ namespace clothes_shop_api.Controllers
 
                     listProductImages.Add(_mapper.Map<ProductImageDto>(image));
                 }
-                
+
                 if (listProductImages.Count() > 0)
                 {
                     await _context.Database.CommitTransactionAsync();
@@ -195,7 +209,7 @@ namespace clothes_shop_api.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPut("set-main-image/{productId}")]
-        public async Task<ActionResult> SetMainImage(int productId, [FromQuery]int imageId)
+        public async Task<ActionResult> SetMainImage(int productId, [FromQuery] int imageId)
         {
             var product = await _context.Products
                 .Include(x => x.ProductImages)
@@ -217,7 +231,7 @@ namespace clothes_shop_api.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPut("set-sub-image/{productId}")]
-        public async Task<ActionResult> SetSubImage(int productId, [FromQuery]int imageId)
+        public async Task<ActionResult> SetSubImage(int productId, [FromQuery] int imageId)
         {
             var product = await _context.Products
                 .Include(x => x.ProductImages)
@@ -250,15 +264,15 @@ namespace clothes_shop_api.Controllers
             foreach (var item in quantityUpdateDto)
             {
                 var quantity = currentQuantity.FirstOrDefault(x => x.Id == item.Id);
-                if (quantity is  null)
+                if (quantity is null)
                 {
                     return BadRequest();
                 }
-                if (quantity.Amount == item.Amount) continue; 
+                if (quantity.Amount == item.Amount) continue;
                 quantity.Amount = item.Amount;
                 _context.Quantities.Update(quantity);
             }
-            if(await _unitOfWork.SaveChangesAsync())
+            if (await _unitOfWork.SaveChangesAsync())
                 return Ok();
             return BadRequest();
         }
@@ -268,7 +282,7 @@ namespace clothes_shop_api.Controllers
         public async Task<ActionResult> UpdateProductStatus(int id)
         {
             await _unitOfWork.ProductRepository.UpdateProductStatusAsync(id);
-            
+
             if (await _unitOfWork.SaveChangesAsync())
                 return NoContent();
 
