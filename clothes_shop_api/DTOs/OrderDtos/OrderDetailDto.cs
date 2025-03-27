@@ -19,6 +19,7 @@ namespace clothes_shop_api.DTOs.OrderDtos
         public string PaymentMethod { get; set; }
         public bool PaymentStatus { get; set; }
         public string Provider { get; set; }
+        public int ShippingFee { get; set; }
         public virtual ICollection<OrderItemDto> OrderItems { get; set; }
     }
 }
